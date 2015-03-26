@@ -4,5 +4,6 @@ OpenIDE-Module: se.trixon.bivi.core
 OpenIDE-Module-Install: se/trixon/bivi/core/Installer.class
 OpenIDE-Module-Layer: se/trixon/bivi/core/layer.xml
 OpenIDE-Module-Localizing-Bundle: se/trixon/bivi/core/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
 OpenIDE-Module-Specification-Version: 1.0
 
