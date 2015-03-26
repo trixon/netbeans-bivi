@@ -16,13 +16,17 @@
 package se.trixon.bivi.core.actions;
 
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -36,6 +40,8 @@ import org.openide.awt.Actions;
 import org.openide.awt.Mnemonics;
 import org.openide.util.ImageUtilities;
 import org.openide.util.actions.Presenter;
+import se.trixon.almond.SwingHelper;
+import static se.trixon.almond.SwingHelper.enableComponents;
 import se.trixon.almond.dictionary.Dict;
 
 /**
@@ -88,6 +94,9 @@ public final class SystemMenuAction extends AbstractAction implements Presenter.
             mPopup.add(new JSeparator());
 
             add(mPopup, "File", "se.trixon.almond.actions.QuitAction");
+
+            Font font = menu.getFont().deriveFont(menu.getFont().getSize() + 3f);
+            SwingHelper.setComponentsFont(mPopup, font);
         });
 
         mButton.setIcon(ImageUtilities.loadImageIcon("se/trixon/bivi/core/res/format-justify-fill24.png", false));
