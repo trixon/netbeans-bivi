@@ -31,12 +31,12 @@ limitations under the License.
         <file name="UndoRedo_hidden"/>
         <folder name="File">
             <file name="org-openide-actions-SaveAllAction.shadow_hidden"/>
-        </folder>
+        </folder>        
         <folder name="System">
             <attr name="position" intvalue="9999"/>
             <file name="Spacer.instance">
                 <attr name="instanceCreate" methodvalue="javax.swing.Box.createHorizontalGlue"/>
-                <attr name="position" intvalue="0"/>
+                <attr name="position" intvalue="5000"/>
             </file> 
         </folder>
     </folder>
