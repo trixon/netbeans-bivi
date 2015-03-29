@@ -18,6 +18,8 @@ package se.trixon.bivi.core;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import org.openide.modules.ModuleInstall;
+import org.openide.windows.WindowManager;
+import se.trixon.almond.Xlog;
 import se.trixon.almond.swing.NoTabsTabDisplayerUI;
 import se.trixon.bivi.core.about.AboutInitializer;
 
@@ -30,5 +32,11 @@ public class Installer extends ModuleInstall {
             UIManager.put("EditorTabDisplayerUI", NoTabsTabDisplayerUI.ID);
             UIManager.put("NbMainWindow.showCustomBackground", Boolean.TRUE);
         });
+        
+        WindowManager.getDefault().invokeWhenUIReady(() -> {
+            Xlog.select();
+            Bivi.log("Welcome");
+        });
+
     }
 }
