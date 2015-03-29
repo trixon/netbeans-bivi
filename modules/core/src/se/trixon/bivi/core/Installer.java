@@ -31,6 +31,7 @@ public class Installer extends ModuleInstall {
         SwingUtilities.invokeLater(() -> {
             UIManager.put("EditorTabDisplayerUI", NoTabsTabDisplayerUI.ID);
             UIManager.put("NbMainWindow.showCustomBackground", Boolean.TRUE);
+            System.setProperty("netbeans.winsys.status_line.path", "se/trixon/bivi/core/windows/statusbar/se-trixon-bivi-core-windows-statusbar-StatusBar.instance");
         });
         
         WindowManager.getDefault().invokeWhenUIReady(() -> {

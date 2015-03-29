@@ -40,4 +40,17 @@ limitations under the License.
             </file> 
         </folder>
     </folder>
+    <folder name="se">
+        <folder name="trixon">
+            <folder name="bivi">
+                <folder name="core">
+                <folder name="windows">
+                <folder name="statusbar">
+                    <file name="se-trixon-bivi-core-windows-statusbar-StatusBar.instance"/>
+                </folder>
+                </folder>
+                </folder>
+            </folder>
+        </folder>
+    </folder>
 </filesystem>

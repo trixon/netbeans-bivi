@@ -15,9 +15,12 @@
  */
 package se.trixon.bivi.core.windows;
 
+import org.netbeans.api.progress.ProgressHandle;
+import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.StatusDisplayer;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 
@@ -42,13 +45,18 @@ import org.openide.util.NbBundle.Messages;
 )
 @Messages({
     "CTL_MainAction=Main",
-    "CTL_MainTopComponent=Main Window",
-})
+    "CTL_MainTopComponent=Main Window",})
 public final class MainTopComponent extends TopComponent {
 
     public MainTopComponent() {
         initComponents();
         setName(Bundle.CTL_MainTopComponent());
+
+        init();
+    }
+
+    private void init() {
+        StatusDisplayer.getDefault().setStatusText("Status message");
     }
 
     /**
@@ -60,16 +68,30 @@ public final class MainTopComponent extends TopComponent {
     private void initComponents() {
 
         gradientPanel1 = new se.trixon.almond.swing.GradientPanel();
+        jButton1 = new javax.swing.JButton();
+
+        org.openide.awt.Mnemonics.setLocalizedText(jButton1, org.openide.util.NbBundle.getMessage(MainTopComponent.class, "MainTopComponent.jButton1.text")); // NOI18N
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout gradientPanel1Layout = new javax.swing.GroupLayout(gradientPanel1);
         gradientPanel1.setLayout(gradientPanel1Layout);
         gradientPanel1Layout.setHorizontalGroup(
             gradientPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(gradientPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton1)
+                .addContainerGap(313, Short.MAX_VALUE))
         );
         gradientPanel1Layout.setVerticalGroup(
             gradientPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(gradientPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton1)
+                .addContainerGap(267, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -84,8 +106,15 @@ public final class MainTopComponent extends TopComponent {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        ProgressHandle handle = ProgressHandleFactory.createHandle("My custom task");
+        handle.switchToIndeterminate();
+        handle.start();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private se.trixon.almond.swing.GradientPanel gradientPanel1;
+    private javax.swing.JButton jButton1;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
