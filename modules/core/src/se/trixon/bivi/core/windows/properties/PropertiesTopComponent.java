@@ -1,5 +1,5 @@
-/* 
- * Copyright 2015 Patrik Karlsson.
+/*
+ * Copyright 2015 pata.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.bivi.core.windows;
+package se.trixon.bivi.core.windows.properties;
 
-import org.netbeans.api.progress.ProgressHandle;
-import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
-import org.openide.awt.StatusDisplayer;
+import org.openide.awt.ActionReferences;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
 
@@ -28,35 +26,36 @@ import org.openide.util.NbBundle.Messages;
  * Top component which displays something.
  */
 @ConvertAsProperties(
-        dtd = "-//se.trixon.bivi.core.windows//Main//EN",
+        dtd = "-//se.trixon.bivi.core.windows.properties//Properties//EN",
         autostore = false
 )
 @TopComponent.Description(
-        preferredID = "MainTopComponent",
-        //iconBase="SET/PATH/TO/ICON/HERE", 
+        preferredID = "PropertiesTopComponent",
+        iconBase = "se/trixon/almond/nbicons/document-properties.png",
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "editor", openAtStartup = true)
-@ActionID(category = "Window", id = "se.trixon.bivi.core.windows.MainTopComponent")
-@ActionReference(path = "Menu/Window" /*, position = 333 */)
+@TopComponent.Registration(mode = "properties", openAtStartup = true)
+@ActionID(category = "Window", id = "se.trixon.bivi.core.windows.properties.PropertiesTopComponent")
+@ActionReferences({
+    @ActionReference(path = "Toolbars/File", position = 9999),
+    @ActionReference(path = "Menu/View" /*, position = 333 */)
+})
 @TopComponent.OpenActionRegistration(
-        displayName = "#CTL_MainAction",
-        preferredID = "MainTopComponent"
+        displayName = "#CTL_PropertiesAction",
+        preferredID = "PropertiesTopComponent"
 )
 @Messages({
-    "CTL_MainAction=Main",
-    "CTL_MainTopComponent=Main Window",})
-public final class MainTopComponent extends TopComponent {
+    "CTL_PropertiesAction=Properties",
+    "CTL_PropertiesTopComponent=Properties Window",
+    "HINT_PropertiesTopComponent=This is a Properties window"
+})
+public final class PropertiesTopComponent extends TopComponent {
 
-    public MainTopComponent() {
+    public PropertiesTopComponent() {
         initComponents();
-        setName(Bundle.CTL_MainTopComponent());
+        setName(Bundle.CTL_PropertiesTopComponent());
+        setToolTipText(Bundle.HINT_PropertiesTopComponent());
 
-        init();
-    }
-
-    private void init() {
-        StatusDisplayer.getDefault().setStatusText("Status message");
     }
 
     /**
@@ -67,36 +66,39 @@ public final class MainTopComponent extends TopComponent {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        imageViewPanel1 = new se.trixon.almond.imageviewer.ImageViewPanel();
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(imageViewPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
+            .addGap(0, 400, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(imageViewPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
+            .addGap(0, 300, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private se.trixon.almond.imageviewer.ImageViewPanel imageViewPanel1;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
+        // TODO add custom code on component opening
     }
 
     @Override
     public void componentClosed() {
+        // TODO add custom code on component closing
     }
 
     void writeProperties(java.util.Properties p) {
+        // better to version settings since initial version as advocated at
+        // http://wiki.apidesign.org/wiki/PropertyFiles
         p.setProperty("version", "1.0");
+        // TODO store your settings
     }
 
     void readProperties(java.util.Properties p) {
         String version = p.getProperty("version");
+        // TODO read your settings according to their version
     }
 }
