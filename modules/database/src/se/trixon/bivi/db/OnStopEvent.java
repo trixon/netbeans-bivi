@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2015 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.bivi.core;
+package se.trixon.bivi.db;
 
-import javax.swing.SwingUtilities;
-import org.openide.modules.ModuleInstall;
-import org.openide.windows.WindowManager;
+import java.sql.SQLException;
+import org.openide.modules.OnStop;
+import org.openide.util.Exceptions;
 import se.trixon.almond.Xlog;
-import se.trixon.bivi.core.about.AboutInitializer;
 
-public class Installer extends ModuleInstall {
+/**
+ *
+ * @author Patrik Karlsson <patrik@trixon.se>
+ */
+@OnStop
+public class OnStopEvent implements Runnable {
 
     @Override
-    public void restored() {
-        AboutInitializer.init();
-        SwingUtilities.invokeLater(() -> {
-            System.setProperty("netbeans.winsys.status_line.path", "se/trixon/bivi/core/windows/statusbar/se-trixon-bivi-core-windows-statusbar-StatusBar.instance");
-        });
-
-        WindowManager.getDefault().invokeWhenUIReady(() -> {
-            Xlog.select();
-        });
-
+    public void run() {
+        Xlog.d(getClass(), "onStop");
+        try {
+            DbManager.INSTANCE.closeConnection();
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 }

@@ -20,6 +20,7 @@ import javax.swing.JFileChooser;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import se.trixon.almond.dialogs.FileChooserPanel;
+import se.trixon.bivi.db.DbManager;
 
 /**
  *
@@ -27,7 +28,7 @@ import se.trixon.almond.dialogs.FileChooserPanel;
  */
 final class DatabasePanel extends javax.swing.JPanel {
 
-    private static final DbOptions mOptions = DbOptions.INSTANCE;
+    private static final DbManager mManager = DbManager.INSTANCE;
     private final DatabaseOptionsPanelController mController;
 
     DatabasePanel(DatabaseOptionsPanelController controller) {
@@ -89,11 +90,11 @@ final class DatabasePanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        dirChooserPanel.setPath(mOptions.getPath().getAbsolutePath());
+        dirChooserPanel.setPath(mManager.getPath());
     }
 
     void store() {
-        mOptions.setPath(new File(dirChooserPanel.getPath()));
+        mManager.setPath(new File(dirChooserPanel.getPath()));
     }
 
     boolean valid() {
