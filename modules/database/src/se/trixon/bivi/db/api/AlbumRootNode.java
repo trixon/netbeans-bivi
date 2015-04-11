@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2015 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@OptionsPanelController.ContainerRegistration(id = "Database",
-        categoryName = "#OptionsCategory_Name_Database",
-        iconBase = "se/trixon/bivi/db/options/server-database.png",
-        keywords = "#OptionsCategory_Keywords_Database",
-        keywordsCategory = "Database")
-@NbBundle.Messages(value = {"OptionsCategory_Name_Database=Database",
-    "OptionsCategory_Keywords_Database=Database"})
-package se.trixon.bivi.db;
+package se.trixon.bivi.db.api;
 
-import org.netbeans.spi.options.OptionsPanelController;
-import org.openide.util.NbBundle;
+import java.beans.IntrospectionException;
+import org.openide.nodes.BeanNode;
 
 /**
  *
- * @author Patrik Karlsson <patrik@trixon.se>
+ * @author Patrik Karlsson
  */
+public class AlbumRootNode extends BeanNode {
+
+    public AlbumRootNode(AlbumRoot bean) throws IntrospectionException {
+        super(bean);
+        setDisplayName(bean.getLabel());
+        setShortDescription(bean.getSpecificPath());
+        
+        //setIconBaseWithExtension("org/fully/qualified/name/myicon.png");
+    }
+
+}

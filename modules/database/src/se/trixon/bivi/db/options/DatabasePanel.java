@@ -37,6 +37,10 @@ final class DatabasePanel extends javax.swing.JPanel {
         init();
     }
 
+    void cancel() {
+        albumRootsPanel.cancel();
+    }
+
     private void init() {
         dirChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
         dirChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
@@ -68,16 +72,25 @@ final class DatabasePanel extends javax.swing.JPanel {
     private void initComponents() {
 
         dirChooserPanel = new se.trixon.almond.dialogs.FileChooserPanel();
+        albumRootsLabel = new javax.swing.JLabel();
+        albumRootsPanel = new se.trixon.bivi.db.options.AlbumRootsPanel();
 
         dirChooserPanel.setHeader(org.openide.util.NbBundle.getMessage(DatabasePanel.class, "DatabasePanel.dirChooserPanel.header")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(albumRootsLabel, org.openide.util.NbBundle.getMessage(DatabasePanel.class, "DatabasePanel.albumRootsLabel.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(dirChooserPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 589, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(dirChooserPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(albumRootsLabel)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(albumRootsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -85,16 +98,22 @@ final class DatabasePanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(dirChooserPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(264, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(albumRootsLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(albumRootsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
         dirChooserPanel.setPath(mManager.getPath());
+        albumRootsPanel.load();
     }
 
     void store() {
         mManager.setPath(new File(dirChooserPanel.getPath()));
+        albumRootsPanel.store();
     }
 
     boolean valid() {
@@ -105,6 +124,8 @@ final class DatabasePanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel albumRootsLabel;
+    private se.trixon.bivi.db.options.AlbumRootsPanel albumRootsPanel;
     private se.trixon.almond.dialogs.FileChooserPanel dirChooserPanel;
     // End of variables declaration//GEN-END:variables
 }

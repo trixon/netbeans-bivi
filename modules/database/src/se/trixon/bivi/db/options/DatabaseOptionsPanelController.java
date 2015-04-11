@@ -23,14 +23,13 @@ import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 
-@OptionsPanelController.SubRegistration(
-        location = "Database",
-        displayName = "#AdvancedOption_DisplayName_Database",
-        keywords = "#AdvancedOption_Keywords_Database",
-        keywordsCategory = "Database/Database",
-        position = 1
+@OptionsPanelController.TopLevelRegistration(
+        position = 0,
+        categoryName = "#OptionsCategory_Name_Database",
+        iconBase = "se/trixon/bivi/db/options/server-database.png",
+        keywords = "#OptionsCategory_Keywords_Database",
+        keywordsCategory = "Database"
 )
-@org.openide.util.NbBundle.Messages({"AdvancedOption_DisplayName_Database=Database", "AdvancedOption_Keywords_Database=Database"})
 /**
  *
  * @author Patrik Karlsson <patrik@trixon.se>
@@ -56,7 +55,7 @@ public final class DatabaseOptionsPanelController extends OptionsPanelController
 
     @Override
     public void cancel() {
-        // need not do anything special, if no changes have been persisted yet
+        mPanel.cancel();
     }
 
     @Override

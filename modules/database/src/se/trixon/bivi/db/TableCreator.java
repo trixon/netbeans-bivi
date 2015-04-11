@@ -21,6 +21,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.openide.util.Exceptions;
 import se.trixon.almond.Xlog;
+import se.trixon.bivi.db.api.Tables;
+import se.trixon.bivi.db.api.Tables.AlbumRoots;
 
 /**
  *
@@ -51,9 +53,9 @@ public class TableCreator {
     }
 
     private String getAlbumRoots() {
-        StringBuilder builder = dropAndCreate("AlbumRoots");
+        StringBuilder builder = dropAndCreate(AlbumRoots._NAME);
 
-        builder.append("(id INTEGER PRIMARY KEY,");
+        builder.append("(id IDENTITY PRIMARY KEY,");
         builder.append("label VARCHAR(255),");
         builder.append("status INTEGER NOT NULL,");
         builder.append("type INTEGER NOT NULL,");
@@ -66,7 +68,7 @@ public class TableCreator {
 
     private String getTemplate(String name) {
         StringBuilder builder = dropAndCreate("");
-        
+
         builder.append("");
 
         return builder.toString();
