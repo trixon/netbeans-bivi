@@ -22,6 +22,7 @@ import java.sql.Statement;
 import org.openide.util.Exceptions;
 import se.trixon.almond.Xlog;
 import se.trixon.bivi.db.api.Tables.AlbumRoots;
+import se.trixon.bivi.db.api.Tables.Albums;
 
 /**
  *
@@ -34,6 +35,7 @@ public class TableCreator {
         Connection conn = DbManager.INSTANCE.getConnection();
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             statement.addBatch(getAlbumRoots());
+            statement.addBatch(getAlbums());
             statement.executeBatch();
             Xlog.d(getClass(), "Tables created");
         } catch (SQLException ex) {
@@ -65,10 +67,17 @@ public class TableCreator {
         return builder.toString();
     }
 
-    private String getTemplate(String name) {
-        StringBuilder builder = dropAndCreate("");
+    private String getAlbums() {
+        StringBuilder builder = dropAndCreate(Albums._NAME);
 
-        builder.append("");
+        builder.append("(id IDENTITY PRIMARY KEY,");
+        builder.append("albumRoot INTEGER NOT NULL,");
+        builder.append("relativePath VARCHAR(4096) NOT NULL,");
+        builder.append("date DATE,");
+        builder.append("caption VARCHAR(255),");
+        builder.append("collection VARCHAR(255),");
+        builder.append("icon INTEGER,");
+        builder.append("UNIQUE(albumRoot, relativePath));");
 
         return builder.toString();
     }

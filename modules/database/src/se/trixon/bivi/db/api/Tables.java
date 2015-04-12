@@ -23,13 +23,24 @@ public class Tables {
 
     public class AlbumRoots {
 
-        public static final String _NAME = "AlbumRoots";
         public static final String ID = "ID";
+        public static final String IDENTIFIER = "identifier";
         public static final String LABEL = "label";
+        public static final String SPECIFIC_PATH = "specificPath";
         public static final String STATUS = "status";
         public static final String TYPE = "type";
-        public static final String IDENTIFIER = "identifier";
-        public static final String SPECIFIC_PATH = "specificPath";
+        public static final String _NAME = "AlbumRoots";
+    }
 
+    public class Albums {
+
+        public static final String _NAME = "Albums";
+        public static final String ID = "ID";
+        public static final String ALBUM_ROOT = "albumRoot";
+        public static final String RELATIVE_PATH = "relativePath";
+        public static final String DATE = "date";
+        public static final String CAPTION = "caption";
+        public static final String COLLECTION = "collection";
+        public static final String ICON = "icon";
     }
 }
