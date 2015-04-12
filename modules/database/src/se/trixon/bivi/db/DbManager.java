@@ -18,7 +18,9 @@ package se.trixon.bivi.db;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.prefs.Preferences;
 import org.apache.commons.io.FileUtils;
 import org.openide.util.NbPreferences;
@@ -42,11 +44,25 @@ public enum DbManager {
         mPreferences = NbPreferences.forModule(this.getClass());
     }
 
+    public void beginTransaction() throws SQLException {
+        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            Xlog.d(getClass(), "begin transaction");
+            statement.execute("begin transaction;");
+        }
+    }
+
     public void closeConnection() throws SQLException {
         if (mConnection != null) {
             Xlog.d(getClass(), "closeConnection");
             mConnection.close();
             mConnection = null;
+        }
+    }
+
+    public void commitTransaction() throws SQLException {
+        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            Xlog.d(getClass(), "commit");
+            statement.execute("commit;");
         }
     }
 
@@ -81,6 +97,13 @@ public enum DbManager {
 
     public boolean isEmpty() {
         return mEmpty;
+    }
+
+    public void rollbackTransaction() throws SQLException {
+        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            Xlog.d(getClass(), "rollback");
+            statement.execute("rollback;");
+        }
     }
 
     public void setEmpty(boolean empty) {

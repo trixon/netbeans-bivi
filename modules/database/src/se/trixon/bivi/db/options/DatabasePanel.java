@@ -16,9 +16,11 @@
 package se.trixon.bivi.db.options;
 
 import java.io.File;
+import java.sql.SQLException;
 import javax.swing.JFileChooser;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.openide.util.Exceptions;
 import se.trixon.almond.dialogs.FileChooserPanel;
 import se.trixon.bivi.db.DbManager;
 
@@ -38,10 +40,15 @@ final class DatabasePanel extends javax.swing.JPanel {
     }
 
     void cancel() {
-        albumRootsPanel.cancel();
+        try {
+            albumRootsPanel.cancel();
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     private void init() {
+        albumRootsPanel.setController(mController);
         dirChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
         dirChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
         dirChooserPanel.getTextField().getDocument().addDocumentListener(new DocumentListener() {
@@ -107,13 +114,21 @@ final class DatabasePanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        dirChooserPanel.setPath(mManager.getPath());
-        albumRootsPanel.load();
+        try {
+            dirChooserPanel.setPath(mManager.getPath());
+            albumRootsPanel.load();
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     void store() {
         mManager.setPath(new File(dirChooserPanel.getPath()));
-        albumRootsPanel.store();
+        try {
+            albumRootsPanel.store();
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 
     boolean valid() {

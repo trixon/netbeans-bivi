@@ -21,7 +21,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.openide.util.Exceptions;
 import se.trixon.almond.Xlog;
-import se.trixon.bivi.db.api.Tables;
 import se.trixon.bivi.db.api.Tables.AlbumRoots;
 
 /**

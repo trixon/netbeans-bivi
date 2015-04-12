@@ -27,7 +27,9 @@ import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
+import org.openide.util.NbBundle;
 import se.trixon.almond.Xlog;
+import se.trixon.almond.dialogs.Message;
 import se.trixon.almond.dictionary.Dict;
 import se.trixon.almond.icon.Pict;
 import se.trixon.bivi.db.DbManager;
@@ -40,15 +42,79 @@ import se.trixon.bivi.db.api.Tables.AlbumRoots;
  */
 public class AlbumRootsPanel extends javax.swing.JPanel {
 
+    private final DbManager mManager = DbManager.INSTANCE;
+    private DatabaseOptionsPanelController mController;
+
     public AlbumRootsPanel() {
         initComponents();
         init();
     }
 
-    void cancel() {
+    public void setController(DatabaseOptionsPanelController controller) {
+        mController = controller;
     }
 
-    private void dbInsert(AlbumRoot albumRoot) {
+    void cancel() throws SQLException {
+        mManager.rollbackTransaction();
+    }
+
+    private void dbDelete(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
+        StringBuilder sql = new StringBuilder();
+
+        if (albumRoot == null) {
+            sql.append("DELETE FROM ").append(AlbumRoots._NAME).append(";");
+        } else {
+            sql.append("DELETE ")
+                    .append("FROM ").append(AlbumRoots._NAME).append(" ")
+                    .append("WHERE ").append(AlbumRoots.ID).append("=").append(albumRoot.getId()).append(";");
+        }
+
+        Xlog.d(getClass(), sql.toString());
+
+        Connection conn = DbManager.INSTANCE.getConnection();
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            statement.execute(sql.toString());
+        }
+
+        mController.changed();
+    }
+
+    private boolean hasDuplicate(AlbumRoot albumRoot, boolean update) throws ClassNotFoundException, SQLException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) AS ROW_COUNT ")
+                .append("FROM ").append(AlbumRoots._NAME).append(" ")
+                .append("WHERE ").append(AlbumRoots.IDENTIFIER).append("='").append(albumRoot.getIdentifier()).append("' ")
+                .append("AND ").append(AlbumRoots.SPECIFIC_PATH).append("='").append(albumRoot.getSpecificPath()).append("' ");
+
+        if (update) {
+            sql.append("AND NOT ").append(AlbumRoots.ID).append("=").append(albumRoot.getId());
+
+        }
+
+        int rowCount = 0;
+        Xlog.d(getClass(), sql.toString());
+
+        Connection conn = DbManager.INSTANCE.getConnection();
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = statement.executeQuery(sql.toString())) {
+            rs.first();
+            rowCount = rs.getInt("ROW_COUNT");
+        } catch (SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
+        boolean hasDuplicate = rowCount > 0;
+        if (hasDuplicate) {
+            Message.warning("Not Distinct path/drive", "Try again");
+        }
+
+        return hasDuplicate;
+    }
+
+    private boolean dbInsert(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
+        if (hasDuplicate(albumRoot, false)) {
+            return false;
+        }
+
         StringBuilder sql = new StringBuilder();
 
         sql.append("INSERT INTO ").append(AlbumRoots._NAME).append("(");
@@ -57,7 +123,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         sql.append(AlbumRoots.TYPE).append(", ");
         sql.append(AlbumRoots.IDENTIFIER).append(", ");
         sql.append(AlbumRoots.SPECIFIC_PATH);
-        sql.append(")");
+        sql.append(") ");
 
         sql.append("VALUES (");
         sql.append("'").append(albumRoot.getLabel()).append("', ");
@@ -69,18 +135,13 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
 
         Xlog.d(getClass(), sql.toString());
 
-        try {
-            Connection conn = DbManager.INSTANCE.getConnection();
-            try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-                statement.execute(sql.toString());
-            }
-        } catch (ClassNotFoundException ex) {
-            Exceptions.printStackTrace(ex);
-        } catch (SQLException ex) {
-            Exceptions.printStackTrace(ex);
+        Connection conn = DbManager.INSTANCE.getConnection();
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            statement.execute(sql.toString());
         }
 
-        dbSelect();
+        mController.changed();
+        return true;
     }
 
     private void dbSelect() {
@@ -110,32 +171,49 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
                         model.addElement(albumRoot);
                     }
                 }
-            } catch (SQLException ex) {
-                Exceptions.printStackTrace(ex);
             }
-        } catch (ClassNotFoundException ex) {
-            Exceptions.printStackTrace(ex);
-        } catch (SQLException ex) {
+        } catch (ClassNotFoundException | SQLException ex) {
             Exceptions.printStackTrace(ex);
         }
+
         list.setModel(model);
     }
 
-    private void dbUpdate(AlbumRoot albumRoot, AlbumRoot editedAlbumRoot) {
-    }
-
-    private void editAlbumRoot(AlbumRoot albumRoot) {
-        boolean addObject = false;
-        String title;
-
-        if (albumRoot == null) {
-            addObject = true;
-            title = Dict.ADD.getString();
-            albumRoot = new AlbumRoot();
-        } else {
-            title = Dict.EDIT.getString();
+    private boolean dbUpdate(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
+        if (hasDuplicate(albumRoot, true)) {
+            return false;
         }
 
+        StringBuilder sql = new StringBuilder();
+        sql.append("UPDATE ").append(AlbumRoots._NAME).append(" SET ")
+                .append(AlbumRoots.LABEL).append("='").append(albumRoot.getLabel()).append("', ")
+                .append(AlbumRoots.SPECIFIC_PATH).append("='").append(albumRoot.getSpecificPath()).append("' ")
+                .append("WHERE ").append(AlbumRoots.ID).append("=").append(albumRoot.getId())
+                .append(";");
+
+        Xlog.d(getClass(), sql.toString());
+        Connection conn = DbManager.INSTANCE.getConnection();
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            statement.execute(sql.toString());
+        }
+
+        mController.changed();
+        return true;
+    }
+
+    private void editAlbumRoot(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
+
+        albumRoot = requestAlbumRoot(albumRoot, Dict.EDIT.getString());
+        if (albumRoot != null) {
+            if (!dbUpdate(albumRoot)) {
+                editAlbumRoot(albumRoot);
+            }
+        }
+
+        dbSelect();
+    }
+
+    private AlbumRoot requestAlbumRoot(AlbumRoot albumRoot, String title) {
         AlbumRootPanel albumRootPanel = new AlbumRootPanel();
         DialogDescriptor d = new DialogDescriptor(albumRootPanel, title, true, (ActionEvent e) -> {
         });
@@ -144,17 +222,29 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         albumRootPanel.setAlbumRoot(albumRoot);
 
         Object retval = DialogDisplayer.getDefault().notify(d);
-
         if (retval == NotifyDescriptor.OK_OPTION) {
             AlbumRoot editedAlbumRoot = albumRootPanel.getAlbumRoot();
             if (editedAlbumRoot.isValid()) {
-                if (addObject) {
-                    dbInsert(editedAlbumRoot);
-                } else {
-                    dbUpdate(albumRoot, editedAlbumRoot);
-                }
+                return editedAlbumRoot;
             }
         }
+
+        return null;
+    }
+
+    private void addAlbumRoot(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
+        if (albumRoot == null) {
+            albumRoot = new AlbumRoot();
+        }
+
+        albumRoot = requestAlbumRoot(albumRoot, Dict.ADD.getString());
+        if (albumRoot != null) {
+            if (!dbInsert(albumRoot)) {
+                addAlbumRoot(albumRoot);
+            }
+        }
+
+        dbSelect();
     }
 
     private AlbumRoot getSelectedItem() {
@@ -172,7 +262,11 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
             @Override
             public void mouseClicked(MouseEvent evt) {
                 if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() == 2) {
-                    editAlbumRoot(getSelectedItem());
+                    try {
+                        editAlbumRoot(getSelectedItem());
+                    } catch (SQLException | ClassNotFoundException ex) {
+                        Exceptions.printStackTrace(ex);
+                    }
                 }
             }
         });
@@ -223,12 +317,22 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         removeButton.setFocusable(false);
         removeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         removeButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        removeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeButtonActionPerformed(evt);
+            }
+        });
         toolBar.add(removeButton);
 
         removeAllButton.setToolTipText(Dict.REMOVE_ALL.getString());
         removeAllButton.setFocusable(false);
         removeAllButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         removeAllButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        removeAllButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeAllButtonActionPerformed(evt);
+            }
+        });
         toolBar.add(removeAllButton);
 
         scrollPane.setViewportView(list);
@@ -254,18 +358,76 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        editAlbumRoot(null);
+        try {
+            addAlbumRoot(null);
+        } catch (SQLException | ClassNotFoundException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editButtonActionPerformed
-        editAlbumRoot(getSelectedItem());
+        try {
+            AlbumRoot selectedItem = getSelectedItem();
+            if (selectedItem != null) {
+                editAlbumRoot(selectedItem);
+            }
+        } catch (SQLException | ClassNotFoundException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }//GEN-LAST:event_editButtonActionPerformed
 
-    void load() {
+    private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
+        if (getSelectedItem() != null) {
+            NotifyDescriptor d = new NotifyDescriptor(
+                    NbBundle.getMessage(this.getClass(), "AlbumRootsPanel.message.remove", getSelectedItem().getLabel()),
+                    NbBundle.getMessage(this.getClass(), "AlbumRootsPanel.title.remove"),
+                    NotifyDescriptor.OK_CANCEL_OPTION,
+                    NotifyDescriptor.WARNING_MESSAGE,
+                    null,
+                    null);
+            Object retval = DialogDisplayer.getDefault().notify(d);
+
+            if (retval == NotifyDescriptor.OK_OPTION) {
+                try {
+                    dbDelete(getSelectedItem());
+                    dbSelect();
+                } catch (ClassNotFoundException | SQLException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+    }//GEN-LAST:event_removeButtonActionPerformed
+
+    private void removeAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeAllButtonActionPerformed
+        DefaultListModel model = (DefaultListModel) list.getModel();
+        if (!model.isEmpty()) {
+            NotifyDescriptor d = new NotifyDescriptor(
+                    NbBundle.getMessage(this.getClass(), "AlbumRootsPanel.message.removeAll"),
+                    NbBundle.getMessage(this.getClass(), "AlbumRootsPanel.title.removeAll"),
+                    NotifyDescriptor.OK_CANCEL_OPTION,
+                    NotifyDescriptor.WARNING_MESSAGE,
+                    null,
+                    null);
+            Object retval = DialogDisplayer.getDefault().notify(d);
+
+            if (retval == NotifyDescriptor.OK_OPTION) {
+                try {
+                    dbDelete(null);
+                    dbSelect();
+                } catch (ClassNotFoundException | SQLException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+    }//GEN-LAST:event_removeAllButtonActionPerformed
+
+    void load() throws SQLException {
+        mManager.beginTransaction();
         dbSelect();
     }
 
-    void store() {
+    void store() throws SQLException {
+        mManager.commitTransaction();
     }
 
     boolean valid() {
