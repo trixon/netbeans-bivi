@@ -82,7 +82,9 @@
                     </run-dependency>
                 </dependency>
             </module-dependencies>
-            <public-packages/>
+            <public-packages>
+                <package>se.trixon.bivi.core</package>
+            </public-packages>
         </data>
     </configuration>
 </project>
