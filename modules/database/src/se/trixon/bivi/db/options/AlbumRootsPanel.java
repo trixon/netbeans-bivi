@@ -32,7 +32,7 @@ import se.trixon.almond.Xlog;
 import se.trixon.almond.dialogs.Message;
 import se.trixon.almond.dictionary.Dict;
 import se.trixon.almond.icon.Pict;
-import se.trixon.bivi.db.DbManager;
+import se.trixon.bivi.db.api.DbManager;
 import se.trixon.bivi.db.api.AlbumRoot;
 import se.trixon.bivi.db.api.Tables.AlbumRoots;
 

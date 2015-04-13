@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.bivi.db;
+package se.trixon.bivi.db.api;
 
 import java.io.File;
 import java.sql.Connection;

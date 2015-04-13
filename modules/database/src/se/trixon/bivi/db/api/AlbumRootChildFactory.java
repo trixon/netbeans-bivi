@@ -16,6 +16,10 @@
 package se.trixon.bivi.db.api;
 
 import java.beans.IntrospectionException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
@@ -29,25 +33,48 @@ public class AlbumRootChildFactory extends ChildFactory<AlbumRoot> {
 
     @Override
     protected boolean createKeys(List<AlbumRoot> toPopulate) {
-        //Make a connection to your database or other data source here,
-        //for demo purposes, we simulate three Car objects:
-        toPopulate.add(new AlbumRoot("Honda", "1971"));
-        toPopulate.add(new AlbumRoot("Mercedes", "1988"));
-        toPopulate.add(new AlbumRoot("Mazda", "1982"));
-        
+        try {
+            Connection conn = DbManager.INSTANCE.getConnection();
+            try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                String sql = String.format("SELECT * FROM  %s ORDER BY %s ASC;", Tables.AlbumRoots._NAME, Tables.AlbumRoots.LABEL);
+                try (ResultSet rs = statement.executeQuery(sql)) {
+                    while (rs.next()) {
+                        int id = rs.getInt(Tables.AlbumRoots.ID);
+                        String label = rs.getString(Tables.AlbumRoots.LABEL);
+                        String identifier = rs.getString(Tables.AlbumRoots.IDENTIFIER);
+                        String specificPath = rs.getString(Tables.AlbumRoots.SPECIFIC_PATH);
+                        int status = rs.getInt(Tables.AlbumRoots.STATUS);
+                        int type = rs.getInt(Tables.AlbumRoots.TYPE);
+
+                        AlbumRoot albumRoot = new AlbumRoot();
+                        albumRoot.setId(id);
+                        albumRoot.setIdentifier(identifier);
+                        albumRoot.setLabel(label);
+                        albumRoot.setSpecificPath(specificPath);
+                        albumRoot.setStatus(status);
+                        albumRoot.setType(type);
+                        
+                        toPopulate.add(albumRoot);
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
         return true;
     }
 
     @Override
     protected Node createNodeForKey(AlbumRoot key) {
         AlbumRootNode node = null;
-        
+
         try {
             node = new AlbumRootNode(key);
         } catch (IntrospectionException ex) {
             Exceptions.printStackTrace(ex);
         }
-        
+
         return node;
     }
 

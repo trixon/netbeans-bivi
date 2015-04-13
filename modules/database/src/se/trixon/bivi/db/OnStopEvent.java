@@ -15,6 +15,7 @@
  */
 package se.trixon.bivi.db;
 
+import se.trixon.bivi.db.api.DbManager;
 import java.sql.SQLException;
 import org.openide.modules.OnStop;
 import org.openide.util.Exceptions;

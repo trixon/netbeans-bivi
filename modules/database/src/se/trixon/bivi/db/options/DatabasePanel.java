@@ -22,7 +22,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.Exceptions;
 import se.trixon.almond.dialogs.FileChooserPanel;
-import se.trixon.bivi.db.DbManager;
+import se.trixon.bivi.db.api.DbManager;
 
 /**
  *

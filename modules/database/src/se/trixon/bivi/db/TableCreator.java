@@ -15,6 +15,7 @@
  */
 package se.trixon.bivi.db;
 
+import se.trixon.bivi.db.api.DbManager;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
