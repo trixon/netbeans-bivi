@@ -34,6 +34,7 @@ public enum DbManager {
 
     INSTANCE;
     public final String KEY_PATH = "path";
+    private final String DB_EXT = ".h2.db";
     private final String DB_FILENAME = "bivi";
     private final String DEFAULT_PATH = FileUtils.getUserDirectoryPath();
     private Connection mConnection = null;
@@ -67,7 +68,7 @@ public enum DbManager {
     }
 
     public Connection getConnection() throws ClassNotFoundException, SQLException {
-        File dbFile = new File(getPathAsFile(), DB_FILENAME + ".h2.db");
+        File dbFile = new File(getPathAsFile(), DB_FILENAME + DB_EXT);
         if (!dbFile.exists()) {
             mEmpty = true;
             Xlog.d(getClass(), "Database does not exist, creating " + dbFile.getAbsolutePath());
@@ -81,6 +82,10 @@ public enum DbManager {
         }
 
         return mConnection;
+    }
+
+    public String getDbFilename() {
+        return DB_FILENAME + DB_EXT;
     }
 
     public String getPath() {
@@ -113,5 +118,4 @@ public enum DbManager {
     public void setPath(File value) {
         mPreferences.put(KEY_PATH, value.getAbsolutePath());
     }
-
 }

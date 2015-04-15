@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.prefs.PreferenceChangeEvent;
 import org.openide.modules.OnStart;
+import org.openide.windows.WindowManager;
 import se.trixon.almond.Xlog;
 
 /**
@@ -40,7 +41,9 @@ public class OnStartEvent implements Runnable {
             }
         });
 
-        initDb();
+        WindowManager.getDefault().invokeWhenUIReady(() -> {
+            initDb();
+        });
     }
 
     private void initDb() {
