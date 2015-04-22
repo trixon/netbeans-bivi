@@ -22,22 +22,19 @@ import javax.swing.SwingUtilities;
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
+import se.trixon.almond.Xlog;
 
-@OptionsPanelController.TopLevelRegistration(
-        position = 0,
-        categoryName = "#OptionsCategory_Name_Database",
-        iconBase = "se/trixon/bivi/db/options/server-database.png",
-        keywords = "#OptionsCategory_Keywords_Database",
-        keywordsCategory = "Database"
+@OptionsPanelController.SubRegistration(
+        location = "Album",
+        position = 1,
+        displayName = "#AdvancedOption_DisplayName_AlbumCategories",
+        keywords = "#AdvancedOption_Keywords_AlbumCategories",
+        keywordsCategory = "Album/AlbumCategories"
 )
-/**
- *
- * @author Patrik Karlsson <patrik@trixon.se>
- */
-public final class DatabaseOptionsPanelController extends OptionsPanelController {
+public final class AlbumCategoriesOptionsPanelController extends OptionsPanelController {
 
     private boolean mChanged;
-    private DatabasePanel mPanel;
+    private AlbumCategoriesPanel mPanel;
     private final PropertyChangeSupport mPcs = new PropertyChangeSupport(this);
 
     @Override
@@ -55,7 +52,7 @@ public final class DatabaseOptionsPanelController extends OptionsPanelController
 
     @Override
     public void cancel() {
-        mPanel.cancel();
+        // need not do anything special, if no changes have been persisted yet
     }
 
     @Override
@@ -85,15 +82,15 @@ public final class DatabaseOptionsPanelController extends OptionsPanelController
 
     @Override
     public void update() {
+        Xlog.d(getClass(), "update");
         getPanel().load();
         mChanged = false;
     }
 
-    private DatabasePanel getPanel() {
+    private AlbumCategoriesPanel getPanel() {
         if (mPanel == null) {
-            mPanel = new DatabasePanel(this);
+            mPanel = new AlbumCategoriesPanel(this);
         }
-
         return mPanel;
     }
 
@@ -102,7 +99,6 @@ public final class DatabaseOptionsPanelController extends OptionsPanelController
             mChanged = true;
             mPcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, false, true);
         }
-
         mPcs.firePropertyChange(OptionsPanelController.PROP_VALID, null, null);
     }
 }

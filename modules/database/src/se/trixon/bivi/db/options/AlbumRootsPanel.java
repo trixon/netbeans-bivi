@@ -43,19 +43,12 @@ import se.trixon.bivi.db.api.Tables.AlbumRoots;
 public class AlbumRootsPanel extends javax.swing.JPanel {
 
     private final DbManager mManager = DbManager.INSTANCE;
-    private DatabaseOptionsPanelController mController;
+    private final AlbumRootsOptionsPanelController mController;
 
-    public AlbumRootsPanel() {
+    AlbumRootsPanel(AlbumRootsOptionsPanelController controller) {
+        mController = controller;
         initComponents();
         init();
-    }
-
-    public void setController(DatabaseOptionsPanelController controller) {
-        mController = controller;
-    }
-
-    void cancel() throws SQLException {
-        mManager.rollbackTransaction();
     }
 
     private void dbDelete(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
