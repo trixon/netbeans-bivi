@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2015 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +39,7 @@ public enum DbManager {
     private final String DEFAULT_PATH = FileUtils.getUserDirectoryPath();
     private Connection mConnection = null;
     private boolean mEmpty = false;
+    private boolean mInTransaction;
     private final Preferences mPreferences;
 
     private DbManager() {
@@ -46,9 +47,12 @@ public enum DbManager {
     }
 
     public void beginTransaction() throws SQLException {
-        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            Xlog.d(getClass(), "begin transaction");
-            statement.execute("begin transaction;");
+        if (!mInTransaction) {
+            try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                Xlog.d(getClass(), "begin transaction");
+                statement.execute("begin transaction;");
+                mInTransaction = true;
+            }
         }
     }
 
@@ -64,6 +68,7 @@ public enum DbManager {
         try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             Xlog.d(getClass(), "commit");
             statement.execute("commit;");
+            mInTransaction = false;
         }
     }
 
@@ -102,6 +107,10 @@ public enum DbManager {
 
     public boolean isEmpty() {
         return mEmpty;
+    }
+
+    public boolean isInTransaction() {
+        return mInTransaction;
     }
 
     public void rollbackTransaction() throws SQLException {

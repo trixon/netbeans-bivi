@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2015 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ public class OnStopEvent implements Runnable {
     @Override
     public void run() {
         Xlog.d(getClass(), "onStop");
+        
         try {
             DbManager.INSTANCE.closeConnection();
         } catch (SQLException ex) {
