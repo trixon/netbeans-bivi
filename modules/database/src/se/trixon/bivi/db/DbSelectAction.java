@@ -18,6 +18,7 @@ package se.trixon.bivi.db;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.sql.SQLException;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -26,7 +27,9 @@ import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle;
+import se.trixon.almond.Xlog;
 import se.trixon.bivi.db.api.DbManager;
+import se.trixon.bivi.db.api.DbMonitor;
 
 @ActionID(
         category = "Browse",
@@ -43,6 +46,8 @@ import se.trixon.bivi.db.api.DbManager;
 })
 public final class DbSelectAction implements ActionListener {
 
+    private final DbManager mManager = DbManager.INSTANCE;
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String title = NbBundle.getMessage(getClass(), "CTL_DbSelectAction");
@@ -53,8 +58,17 @@ public final class DbSelectAction implements ActionListener {
         dbSelectPanel.setDialogDescriptor(d);
 
         Object retval = DialogDisplayer.getDefault().notify(d);
-        if (retval == NotifyDescriptor.OK_OPTION) {
-            DbManager.INSTANCE.setPath(new File(dbSelectPanel.getPath()));
+        if (retval == NotifyDescriptor.OK_OPTION && !mManager.getPath().equalsIgnoreCase(dbSelectPanel.getPath())) {
+            try {
+                mManager.closeConnection();
+                mManager.setPath(new File(dbSelectPanel.getPath()));
+                mManager.getConnection();
+
+                DbMonitor.INSTANCE.dbChanged();
+            } catch (ClassNotFoundException | SQLException ex) {
+                Xlog.d(getClass(), "Connection failed");
+                Xlog.d(getClass(), ex.getLocalizedMessage());
+            }
         }
     }
 }

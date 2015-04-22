@@ -25,6 +25,7 @@ import org.openide.util.Exceptions;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 import se.trixon.bivi.db.api.DbManager;
+import se.trixon.bivi.db.api.DbMonitor;
 
 @OptionsPanelController.SubRegistration(
         location = "Album",
@@ -50,6 +51,7 @@ public final class AlbumRootsOptionsPanelController extends OptionsPanelControll
         SwingUtilities.invokeLater(() -> {
             try {
                 getPanel().store();
+                DbMonitor.INSTANCE.dbRootAlbumsChanged();
                 mChanged = false;
             } catch (SQLException ex) {
                 Exceptions.printStackTrace(ex);

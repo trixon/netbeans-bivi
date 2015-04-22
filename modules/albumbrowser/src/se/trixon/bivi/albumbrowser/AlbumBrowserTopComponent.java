@@ -29,6 +29,7 @@ import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import se.trixon.bivi.core.BiviTopComponent;
 import se.trixon.bivi.db.api.AlbumRootChildFactory;
+import se.trixon.bivi.db.api.DbMonitor;
 
 /**
  * Top component which displays something.
@@ -52,7 +53,7 @@ import se.trixon.bivi.db.api.AlbumRootChildFactory;
         displayName = "#CTL_AlbumBrowserAction",
         preferredID = "AlbumBrowserTopComponent"
 )
-public final class AlbumBrowserTopComponent extends BiviTopComponent implements ExplorerManager.Provider {
+public final class AlbumBrowserTopComponent extends BiviTopComponent implements ExplorerManager.Provider, DbMonitor.DbEvent {
 
     private final ExplorerManager mExplorerManager = new ExplorerManager();
     private BeanTreeView mBeanTreeView;
@@ -71,10 +72,20 @@ public final class AlbumBrowserTopComponent extends BiviTopComponent implements 
         return mExplorerManager;
     }
 
+    @Override
+    public void onDbChanged() {
+        populate();
+    }
+
+    @Override
+    public void onDbRootAlbumsChanged() {
+        populate();
+    }
+
     private void init() {
         mBeanTreeView = new BeanTreeView();
         add(mBeanTreeView, BorderLayout.CENTER);
-
+        DbMonitor.INSTANCE.add(this);
         populate();
     }
 

@@ -15,7 +15,6 @@
  */
 package se.trixon.bivi.db;
 
-import se.trixon.bivi.db.api.DbManager;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,9 +30,8 @@ import se.trixon.bivi.db.api.Tables.Albums;
  */
 public class TableCreator {
 
-    public TableCreator() throws ClassNotFoundException, SQLException {
+    public TableCreator(Connection conn) throws ClassNotFoundException, SQLException {
         Xlog.d(getClass(), "Creating tables");
-        Connection conn = DbManager.INSTANCE.getConnection();
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             statement.addBatch(getAlbumRoots());
             statement.addBatch(getAlbums());

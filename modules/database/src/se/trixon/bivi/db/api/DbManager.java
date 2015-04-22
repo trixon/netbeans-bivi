@@ -25,6 +25,7 @@ import java.util.prefs.Preferences;
 import org.apache.commons.io.FileUtils;
 import org.openide.util.NbPreferences;
 import se.trixon.almond.Xlog;
+import se.trixon.bivi.db.TableCreator;
 
 /**
  *
@@ -38,7 +39,6 @@ public enum DbManager {
     private final String DB_FILENAME = "bivi";
     private final String DEFAULT_PATH = FileUtils.getUserDirectoryPath();
     private Connection mConnection = null;
-    private boolean mEmpty = false;
     private boolean mInTransaction;
     private final Preferences mPreferences;
 
@@ -74,16 +74,18 @@ public enum DbManager {
 
     public Connection getConnection() throws ClassNotFoundException, SQLException {
         File dbFile = new File(getPathAsFile(), DB_FILENAME + DB_EXT);
-        if (!dbFile.exists()) {
-            mEmpty = true;
-            Xlog.d(getClass(), "Database does not exist, creating " + dbFile.getAbsolutePath());
-        }
+        boolean empty = !dbFile.exists();
 
         if (mConnection == null) {
             Class.forName("org.h2.Driver");
             String jdbcUrl = String.format("jdbc:h2:%s/%s", getPath(), DB_FILENAME);
             Xlog.d(getClass(), "Establishing connection: " + jdbcUrl);
             mConnection = DriverManager.getConnection(jdbcUrl, "sa", "");
+        }
+
+        if (empty) {
+            Xlog.d(getClass(), "Database did not exist, creating table structure...");
+            TableCreator tableCreator = new TableCreator(mConnection);
         }
 
         return mConnection;
@@ -105,10 +107,6 @@ public enum DbManager {
         return mPreferences;
     }
 
-    public boolean isEmpty() {
-        return mEmpty;
-    }
-
     public boolean isInTransaction() {
         return mInTransaction;
     }
@@ -118,10 +116,6 @@ public enum DbManager {
             Xlog.d(getClass(), "rollback");
             statement.execute("rollback;");
         }
-    }
-
-    public void setEmpty(boolean empty) {
-        mEmpty = empty;
     }
 
     public void setPath(File value) {

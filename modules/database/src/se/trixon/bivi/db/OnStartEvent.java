@@ -18,7 +18,6 @@ package se.trixon.bivi.db;
 import se.trixon.bivi.db.api.DbManager;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.prefs.PreferenceChangeEvent;
 import org.openide.modules.OnStart;
 import org.openide.windows.WindowManager;
 import se.trixon.almond.Xlog;
@@ -35,28 +34,14 @@ public class OnStartEvent implements Runnable {
 
     @Override
     public void run() {
-        mManager.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
-            if (evt.getKey().equalsIgnoreCase(mManager.KEY_PATH)) {
-                initDb();
-            }
-        });
-
         WindowManager.getDefault().invokeWhenUIReady(() -> {
             Xlog.d(getClass(), "onStart");
-            initDb();
-        });
-    }
-
-    private void initDb() {
-        try {
-            mManager.closeConnection();
-            mConn = mManager.getConnection();
-            if (mManager.isEmpty()) {
-                TableCreator tableCreator = new TableCreator();
+            try {
+                mConn = mManager.getConnection();
+            } catch (ClassNotFoundException | SQLException ex) {
+                Xlog.d(getClass(), "Connection failed");
+                Xlog.d(getClass(), ex.getLocalizedMessage());
             }
-        } catch (ClassNotFoundException | SQLException ex) {
-            Xlog.d(getClass(), "Connection failed");
-            Xlog.d(getClass(), ex.getLocalizedMessage());
-        }
+        });
     }
 }
