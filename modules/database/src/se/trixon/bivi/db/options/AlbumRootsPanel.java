@@ -52,6 +52,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     }
 
     private void dbDelete(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
+        mManager.beginTransaction();
         StringBuilder sql = new StringBuilder();
 
         if (albumRoot == null) {
@@ -64,7 +65,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
 
         Xlog.d(getClass(), sql.toString());
 
-        Connection conn = DbManager.INSTANCE.getConnection();
+        Connection conn = mManager.getConnection();
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             statement.execute(sql.toString());
         }
@@ -104,6 +105,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     }
 
     private boolean dbInsert(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
+        mManager.beginTransaction();
         if (hasDuplicate(albumRoot, false)) {
             return false;
         }
@@ -177,6 +179,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
             return false;
         }
 
+        mManager.beginTransaction();
         StringBuilder sql = new StringBuilder();
         sql.append("UPDATE ").append(AlbumRoots._NAME).append(" SET ")
                 .append(AlbumRoots.LABEL).append("='").append(albumRoot.getLabel()).append("', ")
@@ -415,7 +418,6 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_removeAllButtonActionPerformed
 
     void load() throws SQLException {
-        mManager.beginTransaction();
         dbSelect();
     }
 
