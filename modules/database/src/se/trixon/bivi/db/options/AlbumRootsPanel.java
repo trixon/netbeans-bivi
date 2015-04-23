@@ -17,12 +17,9 @@ package se.trixon.bivi.db.options;
 
 import com.healthmarketscience.sqlbuilder.BinaryCondition;
 import com.healthmarketscience.sqlbuilder.CustomSql;
-import com.healthmarketscience.sqlbuilder.DeleteQuery;
 import com.healthmarketscience.sqlbuilder.FunctionCall;
-import com.healthmarketscience.sqlbuilder.InsertQuery;
 import com.healthmarketscience.sqlbuilder.OrderObject;
 import com.healthmarketscience.sqlbuilder.SelectQuery;
-import com.healthmarketscience.sqlbuilder.UpdateQuery;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -42,6 +39,7 @@ import se.trixon.almond.dictionary.Dict;
 import se.trixon.almond.icon.Pict;
 import se.trixon.bivi.db.api.DbManager;
 import se.trixon.bivi.db.api.AlbumRoot;
+import se.trixon.bivi.db.api.AlbumRootManager;
 import se.trixon.bivi.db.api.Db;
 
 /**
@@ -53,6 +51,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     private final Db.AlbumRootsDef mAlbumRootsDef = Db.AlbumRootsDef.INSTANCE;
     private final DbManager mManager = DbManager.INSTANCE;
     private final AlbumRootsOptionsPanelController mController;
+    private final AlbumRootManager mAlbumRootManager = AlbumRootManager.INSTANCE;
 
     AlbumRootsPanel(AlbumRootsOptionsPanelController controller) {
         mController = controller;
@@ -62,20 +61,11 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
 
     private void dbDelete(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
         mManager.beginTransaction();
-        DeleteQuery deleteQuery = new DeleteQuery(mAlbumRootsDef.getTable());
-
-        if (albumRoot != null) {
-            deleteQuery.addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getId(), albumRoot.getId()));
+        if (albumRoot == null) {
+            mAlbumRootManager.deleteAll();
+        } else {
+            mAlbumRootManager.delete(albumRoot.getId());
         }
-
-        deleteQuery.validate();
-        Xlog.d(getClass(), deleteQuery.toString());
-
-        Connection conn = mManager.getConnection();
-        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            statement.execute(deleteQuery.toString());
-        }
-
         mController.changed();
     }
 
@@ -113,25 +103,12 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     }
 
     private boolean dbInsert(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
-        mManager.beginTransaction();
         if (hasDuplicate(albumRoot, false)) {
             return false;
         }
 
-        InsertQuery insertQuery = new InsertQuery(mAlbumRootsDef.getTable())
-                .addColumn(mAlbumRootsDef.getLabel(), albumRoot.getLabel())
-                .addColumn(mAlbumRootsDef.getStatus(), albumRoot.getStatus())
-                .addColumn(mAlbumRootsDef.getType(), albumRoot.getType())
-                .addColumn(mAlbumRootsDef.getIdentifier(), albumRoot.getIdentifier())
-                .addColumn(mAlbumRootsDef.getSpecificPath(), albumRoot.getSpecificPath())
-                .validate();
-
-        Xlog.d(getClass(), insertQuery.toString());
-
-        Connection conn = DbManager.INSTANCE.getConnection();
-        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            statement.execute(insertQuery.toString());
-        }
+        mManager.beginTransaction();
+        mAlbumRootManager.insert(albumRoot);
 
         mController.changed();
         return true;
@@ -183,17 +160,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         }
 
         mManager.beginTransaction();
-        UpdateQuery updateQuery = new UpdateQuery(mAlbumRootsDef.getTable())
-                .addSetClause(mAlbumRootsDef.getLabel(), albumRoot.getLabel())
-                .addSetClause(mAlbumRootsDef.getSpecificPath(), albumRoot.getSpecificPath())
-                .addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getId(), albumRoot.getId()))
-                .validate();
-
-        Xlog.d(getClass(), updateQuery.toString());
-        Connection conn = DbManager.INSTANCE.getConnection();
-        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            statement.execute(updateQuery.toString());
-        }
+        mAlbumRootManager.update(albumRoot);
 
         mController.changed();
         return true;

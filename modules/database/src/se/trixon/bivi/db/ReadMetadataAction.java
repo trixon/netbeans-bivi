@@ -16,6 +16,7 @@
 package se.trixon.bivi.db;
 
 import com.healthmarketscience.sqlbuilder.SelectQuery;
+import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -29,6 +30,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.ResourceBundle;
+import org.apache.commons.io.FilenameUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.netbeans.api.progress.ProgressHandleFactory;
 import org.openide.awt.ActionID;
@@ -38,10 +40,14 @@ import org.openide.util.Exceptions;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 import se.trixon.almond.Xlog;
+import se.trixon.bivi.db.api.AlbumManager;
 import se.trixon.bivi.db.api.AlbumRoot;
+import se.trixon.bivi.db.api.AlbumRootManager;
 import se.trixon.bivi.db.api.Db;
 import se.trixon.bivi.db.api.Db.AlbumRootsDef;
+import se.trixon.bivi.db.api.Db.AlbumsDef;
 import se.trixon.bivi.db.api.DbManager;
+import se.trixon.bivi.db.api.DbMonitor;
 
 @ActionID(
         category = "Album",
@@ -69,6 +75,7 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
         task.addTaskListener((org.openide.util.Task task1) -> {
             mProgressHandle.finish();
             Xlog.d(getClass(), "done");
+            DbMonitor.INSTANCE.dbRootAlbumsChanged();
         });
 
         mProgressHandle.start();
@@ -77,8 +84,24 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
 
     @Override
     public void run() {
+        ArrayList<AlbumRoot> roots = getRoots();
+        if (!roots.isEmpty()) {
+            try {
+                mManager.beginTransaction();
+                removeNonExistingAlbumRoots(roots);
+                removeNonExistingAlbums();
+                visitRoots(roots);
+                mManager.commitTransaction();
+            } catch (SQLException | ClassNotFoundException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+    }
+
+    private ArrayList<AlbumRoot> getRoots() {
         ArrayList<AlbumRoot> roots = new ArrayList<>();
         AlbumRootsDef albumRoots = Db.AlbumRootsDef.INSTANCE;
+
         try {
             Connection conn = DbManager.INSTANCE.getConnection();
             try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
@@ -96,7 +119,6 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
                         albumRoot.setId(id);
                         albumRoot.setSpecificPath(specificPath);
 
-                        Xlog.d(getClass(), id + ": " + specificPath);
                         roots.add(albumRoot);
                     }
                 }
@@ -105,16 +127,54 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
             Exceptions.printStackTrace(ex);
         }
 
-        try {
-            visitRoots(roots);
-        } catch (SQLException ex) {
-            Exceptions.printStackTrace(ex);
+        return roots;
+    }
+
+    private void removeNonExistingAlbumRoots(ArrayList<AlbumRoot> roots) {
+        for (AlbumRoot albumRoot : roots) {
+            File file = new File(albumRoot.getSpecificPath());
+            if (!file.isDirectory()) {
+                try {
+                    AlbumRootManager.INSTANCE.delete(albumRoot.getId());
+                } catch (ClassNotFoundException | SQLException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            }
+        }
+    }
+
+    private void removeNonExistingAlbums() throws ClassNotFoundException, SQLException {
+        Connection conn = DbManager.INSTANCE.getConnection();
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            AlbumsDef albumDefs = Db.AlbumsDef.INSTANCE;
+            AlbumRootsDef albumRootsDef = Db.AlbumRootsDef.INSTANCE;
+            DbTable album = albumDefs.getTable();
+            DbTable albumRoots = albumRootsDef.getTable();
+            SelectQuery selectQuery = new SelectQuery()
+                    .addColumns(albumRootsDef.getSpecificPath(), albumDefs.getRelativePath(), albumDefs.getId())
+                    .addJoin(SelectQuery.JoinType.LEFT_OUTER, album, albumRoots, albumDefs.getAlbumRoot(), albumRootsDef.getId())
+                    .validate();
+            String sql = selectQuery.toString();
+            Xlog.d(getClass(), sql);
+
+            try (ResultSet rs = statement.executeQuery(sql)) {
+                while (rs.next()) {
+                    long id = rs.getLong(Db.AlbumsDef.ID);
+                    String specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
+                    String relativePath = rs.getString(Db.AlbumsDef.RELATIVE_PATH);
+                    String path = FilenameUtils.normalize(specificPath + relativePath);
+                    File file = new File(path);
+                    if (!file.isDirectory()) {
+                        Xlog.d(getClass(), file.getAbsolutePath());
+                        AlbumManager.INSTANCE.delete(id);
+                    }
+                }
+            }
         }
     }
 
     private void visitRoots(ArrayList<AlbumRoot> roots) throws SQLException {
         EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-        mManager.beginTransaction();
         for (AlbumRoot root : roots) {
             File file = new File(root.getSpecificPath());
             if (file.isDirectory()) {
@@ -126,6 +186,5 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
                 }
             }
         }
-        mManager.commitTransaction();
     }
 }

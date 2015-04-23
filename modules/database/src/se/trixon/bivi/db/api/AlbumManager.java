@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2015 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,8 @@
  */
 package se.trixon.bivi.db.api;
 
+import com.healthmarketscience.sqlbuilder.BinaryCondition;
+import com.healthmarketscience.sqlbuilder.DeleteQuery;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,10 +32,22 @@ import se.trixon.bivi.db.api.Db.AlbumsDef;
 public enum AlbumManager {
 
     INSTANCE;
-    private final DbManager mManager = DbManager.INSTANCE;
     private final AlbumsDef mAlbumsDef = Db.AlbumsDef.INSTANCE;
+    private final DbManager mManager = DbManager.INSTANCE;
 
     private AlbumManager() {
+    }
+
+    public void delete(long id) throws ClassNotFoundException, SQLException {
+        DeleteQuery deleteQuery = new DeleteQuery(mAlbumsDef.getTable())
+                .addCondition(BinaryCondition.equalTo(mAlbumsDef.getId(), id))
+                .validate();
+        Xlog.d(getClass(), deleteQuery.toString());
+
+        Connection conn = mManager.getConnection();
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            statement.execute(deleteQuery.toString());
+        }
     }
 
     public void insert(long albumRoot, String relativePath, String date) {
