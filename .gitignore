@@ -8,3 +8,7 @@
 /modules/database_h2/nbproject/private/
 /modules/albumbrowser/build/
 /modules/albumbrowser/nbproject/private/
+/database_sqlbuilder/build/
+/modules/database_triggers/build/
+/modules/database_triggers/nbproject/private/
+/database_sqlbuilder/nbproject/private/

@@ -18,8 +18,8 @@ package se.trixon.bivi.db;
 import se.trixon.bivi.db.api.DbManager;
 import java.sql.Connection;
 import java.sql.SQLException;
+import javax.swing.SwingUtilities;
 import org.openide.modules.OnStart;
-import org.openide.windows.WindowManager;
 import se.trixon.almond.Xlog;
 
 /**
@@ -34,7 +34,7 @@ public class OnStartEvent implements Runnable {
 
     @Override
     public void run() {
-        WindowManager.getDefault().invokeWhenUIReady(() -> {
+        SwingUtilities.invokeLater(() -> {
             Xlog.d(getClass(), "onStart");
             try {
                 mConn = mManager.getConnection();
