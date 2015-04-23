@@ -19,6 +19,7 @@ limitations under the License.
     <folder name="Menu">
         <folder name="Browse">
             <attr name="displayName" bundlevalue="se.trixon.almond.dictionary.Bundle#browse"/>
+            <attr name="position" intvalue="0"/>
             <file name="QuitAction-separatorBefore.instance">
                 <attr name="instanceCreate" newvalue="javax.swing.JSeparator"/>
                 <attr name="position" intvalue="9998"/>
@@ -27,6 +28,10 @@ limitations under the License.
                 <attr name="originalFile" stringvalue="Actions/File/se-trixon-almond-actions-QuitAction.instance"/>
                 <attr name="position" intvalue="9999"/>
             </file>
+        </folder>
+        <folder name="Album">
+            <attr name="displayName" bundlevalue="se.trixon.bivi.core.Bundle#album"/>
+            <attr name="position" intvalue="1"/>
         </folder>
 
         <folder name="File_hidden"/>

@@ -23,7 +23,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.tools.TriggerAdapter;
 import se.trixon.almond.Xlog;
-import se.trixon.bivi.db.api.Tables;
+import se.trixon.bivi.db.api.Db.AlbumRootsDef;
+import se.trixon.bivi.db.api.Db.AlbumsDef;
 
 /**
  *
@@ -33,14 +34,15 @@ public class AfterDeleteOnAlbumRootsTrigger extends TriggerAdapter {
 
     @Override
     public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
-        int id = oldRow.getInt(Tables.AlbumRoots.ID);
-        DeleteQuery deleteQuery = new DeleteQuery(Tables.Albums._NAME)
-                .addCondition(BinaryCondition.equalTo(Tables.Albums.ALBUM_ROOT, id))
+        int id = oldRow.getInt(AlbumRootsDef.ID);
+        AlbumsDef albums = AlbumsDef.INSTANCE;
+        DeleteQuery deleteQuery = new DeleteQuery(albums.getTable())
+                .addCondition(BinaryCondition.equalTo(albums.getAlbumRoot(), id))
                 .validate();
-        
+
         String sql = deleteQuery.toString().replace("'", "");
         Xlog.d(getClass(), sql);
-        
+
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             statement.execute(sql);
         }

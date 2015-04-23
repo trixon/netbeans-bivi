@@ -15,6 +15,14 @@
  */
 package se.trixon.bivi.db.options;
 
+import com.healthmarketscience.sqlbuilder.BinaryCondition;
+import com.healthmarketscience.sqlbuilder.CustomSql;
+import com.healthmarketscience.sqlbuilder.DeleteQuery;
+import com.healthmarketscience.sqlbuilder.FunctionCall;
+import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.OrderObject;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
+import com.healthmarketscience.sqlbuilder.UpdateQuery;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -34,7 +42,7 @@ import se.trixon.almond.dictionary.Dict;
 import se.trixon.almond.icon.Pict;
 import se.trixon.bivi.db.api.DbManager;
 import se.trixon.bivi.db.api.AlbumRoot;
-import se.trixon.bivi.db.api.Tables.AlbumRoots;
+import se.trixon.bivi.db.api.Db;
 
 /**
  *
@@ -42,6 +50,7 @@ import se.trixon.bivi.db.api.Tables.AlbumRoots;
  */
 public class AlbumRootsPanel extends javax.swing.JPanel {
 
+    private final Db.AlbumRootsDef mAlbumRootsDef = Db.AlbumRootsDef.INSTANCE;
     private final DbManager mManager = DbManager.INSTANCE;
     private final AlbumRootsOptionsPanelController mController;
 
@@ -53,43 +62,42 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
 
     private void dbDelete(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
         mManager.beginTransaction();
-        StringBuilder sql = new StringBuilder();
+        DeleteQuery deleteQuery = new DeleteQuery(mAlbumRootsDef.getTable());
 
-        if (albumRoot == null) {
-            sql.append("DELETE FROM ").append(AlbumRoots._NAME).append(";");
-        } else {
-            sql.append("DELETE ")
-                    .append("FROM ").append(AlbumRoots._NAME).append(" ")
-                    .append("WHERE ").append(AlbumRoots.ID).append("=").append(albumRoot.getId()).append(";");
+        if (albumRoot != null) {
+            deleteQuery.addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getId(), albumRoot.getId()));
         }
 
-        Xlog.d(getClass(), sql.toString());
+        deleteQuery.validate();
+        Xlog.d(getClass(), deleteQuery.toString());
 
         Connection conn = mManager.getConnection();
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            statement.execute(sql.toString());
+            statement.execute(deleteQuery.toString());
         }
 
         mController.changed();
     }
 
     private boolean hasDuplicate(AlbumRoot albumRoot, boolean update) throws ClassNotFoundException, SQLException {
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT COUNT(*) AS ROW_COUNT ")
-                .append("FROM ").append(AlbumRoots._NAME).append(" ")
-                .append("WHERE ").append(AlbumRoots.IDENTIFIER).append("='").append(albumRoot.getIdentifier()).append("' ")
-                .append("AND ").append(AlbumRoots.SPECIFIC_PATH).append("='").append(albumRoot.getSpecificPath()).append("' ");
+        SelectQuery selectQuery = new SelectQuery()
+                .addCustomColumns(new CustomSql(FunctionCall.countAll() + " AS ROW_COUNT"))
+                .addFromTable(mAlbumRootsDef.getTable())
+                .addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getIdentifier(), albumRoot.getIdentifier()))
+                .addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getSpecificPath(), albumRoot.getSpecificPath()));
 
         if (update) {
-            sql.append("AND NOT ").append(AlbumRoots.ID).append("=").append(albumRoot.getId());
-
+            selectQuery.addCondition(BinaryCondition.notEqualTo(mAlbumRootsDef.getId(), albumRoot.getId()));
         }
 
+        selectQuery.validate();
+        Xlog.d(getClass(), selectQuery.toString());
+
         int rowCount = 0;
-        Xlog.d(getClass(), sql.toString());
 
         Connection conn = DbManager.INSTANCE.getConnection();
-        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE); ResultSet rs = statement.executeQuery(sql.toString())) {
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                ResultSet rs = statement.executeQuery(selectQuery.toString())) {
             rs.first();
             rowCount = rs.getInt("ROW_COUNT");
         } catch (SQLException ex) {
@@ -110,29 +118,19 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
             return false;
         }
 
-        StringBuilder sql = new StringBuilder();
+        InsertQuery insertQuery = new InsertQuery(mAlbumRootsDef.getTable())
+                .addColumn(mAlbumRootsDef.getLabel(), albumRoot.getLabel())
+                .addColumn(mAlbumRootsDef.getStatus(), albumRoot.getStatus())
+                .addColumn(mAlbumRootsDef.getType(), albumRoot.getType())
+                .addColumn(mAlbumRootsDef.getIdentifier(), albumRoot.getIdentifier())
+                .addColumn(mAlbumRootsDef.getSpecificPath(), albumRoot.getSpecificPath())
+                .validate();
 
-        sql.append("INSERT INTO ").append(AlbumRoots._NAME).append("(");
-        sql.append(AlbumRoots.LABEL).append(", ");
-        sql.append(AlbumRoots.STATUS).append(", ");
-        sql.append(AlbumRoots.TYPE).append(", ");
-        sql.append(AlbumRoots.IDENTIFIER).append(", ");
-        sql.append(AlbumRoots.SPECIFIC_PATH);
-        sql.append(") ");
-
-        sql.append("VALUES (");
-        sql.append("'").append(albumRoot.getLabel()).append("', ");
-        sql.append(albumRoot.getStatus()).append(", ");
-        sql.append(albumRoot.getType()).append(", ");
-        sql.append("'").append(albumRoot.getIdentifier()).append("', ");
-        sql.append("'").append(albumRoot.getSpecificPath()).append("'");
-        sql.append(");");
-
-        Xlog.d(getClass(), sql.toString());
+        Xlog.d(getClass(), insertQuery.toString());
 
         Connection conn = DbManager.INSTANCE.getConnection();
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            statement.execute(sql.toString());
+            statement.execute(insertQuery.toString());
         }
 
         mController.changed();
@@ -145,15 +143,20 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         try {
             Connection conn = DbManager.INSTANCE.getConnection();
             try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-                String sql = String.format("SELECT * FROM  %s ORDER BY %s ASC;", AlbumRoots._NAME, AlbumRoots.LABEL);
-                try (ResultSet rs = statement.executeQuery(sql)) {
+                SelectQuery selectQuery = new SelectQuery()
+                        .addAllTableColumns(mAlbumRootsDef.getTable())
+                        .addOrdering(mAlbumRootsDef.getLabel(), OrderObject.Dir.ASCENDING)
+                        .validate();
+                Xlog.d(getClass(), selectQuery.toString());
+
+                try (ResultSet rs = statement.executeQuery(selectQuery.toString())) {
                     while (rs.next()) {
-                        int id = rs.getInt(AlbumRoots.ID);
-                        String label = rs.getString(AlbumRoots.LABEL);
-                        String identifier = rs.getString(AlbumRoots.IDENTIFIER);
-                        String specificPath = rs.getString(AlbumRoots.SPECIFIC_PATH);
-                        int status = rs.getInt(AlbumRoots.STATUS);
-                        int type = rs.getInt(AlbumRoots.TYPE);
+                        int id = rs.getInt(Db.AlbumRootsDef.ID);
+                        String label = rs.getString(Db.AlbumRootsDef.LABEL);
+                        String identifier = rs.getString(Db.AlbumRootsDef.IDENTIFIER);
+                        String specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
+                        int status = rs.getInt(Db.AlbumRootsDef.STATUS);
+                        int type = rs.getInt(Db.AlbumRootsDef.TYPE);
 
                         AlbumRoot albumRoot = new AlbumRoot();
                         albumRoot.setId(id);
@@ -180,17 +183,16 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         }
 
         mManager.beginTransaction();
-        StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE ").append(AlbumRoots._NAME).append(" SET ")
-                .append(AlbumRoots.LABEL).append("='").append(albumRoot.getLabel()).append("', ")
-                .append(AlbumRoots.SPECIFIC_PATH).append("='").append(albumRoot.getSpecificPath()).append("' ")
-                .append("WHERE ").append(AlbumRoots.ID).append("=").append(albumRoot.getId())
-                .append(";");
+        UpdateQuery updateQuery = new UpdateQuery(mAlbumRootsDef.getTable())
+                .addSetClause(mAlbumRootsDef.getLabel(), albumRoot.getLabel())
+                .addSetClause(mAlbumRootsDef.getSpecificPath(), albumRoot.getSpecificPath())
+                .addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getId(), albumRoot.getId()))
+                .validate();
 
-        Xlog.d(getClass(), sql.toString());
+        Xlog.d(getClass(), updateQuery.toString());
         Connection conn = DbManager.INSTANCE.getConnection();
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            statement.execute(sql.toString());
+            statement.execute(updateQuery.toString());
         }
 
         mController.changed();

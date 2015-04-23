@@ -15,6 +15,8 @@
  */
 package se.trixon.bivi.db.api;
 
+import com.healthmarketscience.sqlbuilder.OrderObject;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
 import java.beans.IntrospectionException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,6 +26,7 @@ import java.util.List;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
+import se.trixon.almond.Xlog;
 
 /**
  *
@@ -36,15 +39,21 @@ public class AlbumRootChildFactory extends ChildFactory<AlbumRoot> {
         try {
             Connection conn = DbManager.INSTANCE.getConnection();
             try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-                String sql = String.format("SELECT * FROM  %s ORDER BY %s ASC;", Tables.AlbumRoots._NAME, Tables.AlbumRoots.LABEL);
-                try (ResultSet rs = statement.executeQuery(sql)) {
+                Db.AlbumRootsDef albumRoots = Db.AlbumRootsDef.INSTANCE;
+                SelectQuery selectQuery = new SelectQuery()
+                        .addAllTableColumns(albumRoots.getTable())
+                        .addOrdering(albumRoots.getLabel(), OrderObject.Dir.ASCENDING)
+                        .validate();
+                Xlog.d(getClass(), selectQuery.toString());
+
+                try (ResultSet rs = statement.executeQuery(selectQuery.toString())) {
                     while (rs.next()) {
-                        int id = rs.getInt(Tables.AlbumRoots.ID);
-                        String label = rs.getString(Tables.AlbumRoots.LABEL);
-                        String identifier = rs.getString(Tables.AlbumRoots.IDENTIFIER);
-                        String specificPath = rs.getString(Tables.AlbumRoots.SPECIFIC_PATH);
-                        int status = rs.getInt(Tables.AlbumRoots.STATUS);
-                        int type = rs.getInt(Tables.AlbumRoots.TYPE);
+                        int id = rs.getInt(Db.AlbumRootsDef.ID);
+                        String label = rs.getString(Db.AlbumRootsDef.LABEL);
+                        String identifier = rs.getString(Db.AlbumRootsDef.IDENTIFIER);
+                        String specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
+                        int status = rs.getInt(Db.AlbumRootsDef.STATUS);
+                        int type = rs.getInt(Db.AlbumRootsDef.TYPE);
 
                         AlbumRoot albumRoot = new AlbumRoot();
                         albumRoot.setId(id);
@@ -53,7 +62,7 @@ public class AlbumRootChildFactory extends ChildFactory<AlbumRoot> {
                         albumRoot.setSpecificPath(specificPath);
                         albumRoot.setStatus(status);
                         albumRoot.setType(type);
-                        
+
                         toPopulate.add(albumRoot);
                     }
                 }
@@ -77,5 +86,4 @@ public class AlbumRootChildFactory extends ChildFactory<AlbumRoot> {
 
         return node;
     }
-
 }
