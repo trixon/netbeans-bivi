@@ -29,7 +29,7 @@ import se.trixon.bivi.db.api.AlbumRoot;
  *
  * @author Patrik Karlsson
  */
-public class AlbumRootPanel extends javax.swing.JPanel {
+public class AlbumRootPanel extends javax.swing.JPanel implements FileChooserPanel.FileChooserButtonListener {
 
     private DialogDescriptor mDialogDescriptor;
     private NotificationLineSupport mNotificationLineSupport;
@@ -42,6 +42,35 @@ public class AlbumRootPanel extends javax.swing.JPanel {
     public AlbumRootPanel() {
         initComponents();
         init();
+    }
+
+    @Override
+    public void onFileChooserCancel(FileChooserPanel fileChooserPanel) {
+        // nvm
+    }
+
+    @Override
+    public void onFileChooserCheckBoxChange(FileChooserPanel fileChooserPanel, boolean isSelected) {
+        // nvm
+    }
+
+    @Override
+    public void onFileChooserDrop(FileChooserPanel fileChooserPanel) {
+        if (nameTextField.getText().isEmpty()) {
+            nameTextField.setText(new File(fileChooserPanel.getPath()).getName());
+        }
+    }
+
+    @Override
+    public void onFileChooserOk(FileChooserPanel fileChooserPanel, File file) {
+        if (nameTextField.getText().isEmpty()) {
+            nameTextField.setText(file.getName());
+        }
+    }
+
+    @Override
+    public void onFileChooserPreSelect(FileChooserPanel fileChooserPanel) {
+        // nvm
     }
 
     AlbumRoot getAlbumRoot() {
@@ -83,6 +112,7 @@ public class AlbumRootPanel extends javax.swing.JPanel {
         dirChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
         dirChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
         dirChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
+        dirChooserPanel.setButtonListener(this);
     }
 
     /**
