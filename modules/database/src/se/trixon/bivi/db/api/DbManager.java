@@ -65,10 +65,12 @@ public enum DbManager {
     }
 
     public void commitTransaction() throws SQLException {
-        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            Xlog.d(getClass(), "commit");
-            statement.execute("commit;");
-            mInTransaction = false;
+        if (mInTransaction) {
+            try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                Xlog.d(getClass(), "commit");
+                statement.execute("commit;");
+                mInTransaction = false;
+            }
         }
     }
 
@@ -112,9 +114,12 @@ public enum DbManager {
     }
 
     public void rollbackTransaction() throws SQLException {
-        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            Xlog.d(getClass(), "rollback");
-            statement.execute("rollback;");
+        if (mInTransaction) {
+            try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                Xlog.d(getClass(), "rollback");
+                statement.execute("rollback;");
+                mInTransaction = false;
+            }
         }
     }
 
