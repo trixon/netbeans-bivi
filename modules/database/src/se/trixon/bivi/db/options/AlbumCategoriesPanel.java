@@ -15,6 +15,8 @@
  */
 package se.trixon.bivi.db.options;
 
+import se.trixon.almond.Xlog;
+
 final class AlbumCategoriesPanel extends javax.swing.JPanel {
 
     private final AlbumCategoriesOptionsPanelController controller;
@@ -46,27 +48,13 @@ final class AlbumCategoriesPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     void load() {
-        // TODO read settings and initialize GUI
-        // Example:        
-        // someCheckBox.setSelected(Preferences.userNodeForPackage(AlbumCategoriesPanel.class).getBoolean("someFlag", false));
-        // or for org.openide.util with API spec. version >= 7.4:
-        // someCheckBox.setSelected(NbPreferences.forModule(AlbumCategoriesPanel.class).getBoolean("someFlag", false));
-        // or:
-        // someTextField.setText(SomeSystemOption.getDefault().getSomeStringProperty());
+        Xlog.d(getClass(), "load()");
     }
 
     void store() {
-        // TODO store modified settings
-        // Example:
-        // Preferences.userNodeForPackage(AlbumCategoriesPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
-        // or for org.openide.util with API spec. version >= 7.4:
-        // NbPreferences.forModule(AlbumCategoriesPanel.class).putBoolean("someFlag", someCheckBox.isSelected());
-        // or:
-        // SomeSystemOption.getDefault().setSomeStringProperty(someTextField.getText());
     }
 
     boolean valid() {
-        // TODO check whether form is consistent and complete
         return true;
     }
 

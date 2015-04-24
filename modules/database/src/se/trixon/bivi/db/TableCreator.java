@@ -35,6 +35,7 @@ public class TableCreator {
             statement.addBatch(getAlbumRoots());
             statement.addBatch(getAlbums());
             statement.addBatch("CREATE TRIGGER delete_albumroot AFTER DELETE ON AlbumRoots FOR EACH ROW CALL \"se.trixon.bivi.db.triggers.AfterDeleteOnAlbumRootsTrigger\"");
+            //statement.addBatch("CREATE TRIGGER change_albumroot AFTER INSERT,UPDATE,DELETE ON AlbumRoots CALL \"se.trixon.bivi.db.triggers.AfterChangeOnAlbumRootsTrigger\"");
             statement.executeBatch();
             Xlog.d(getClass(), "Tables created");
         } catch (SQLException ex) {

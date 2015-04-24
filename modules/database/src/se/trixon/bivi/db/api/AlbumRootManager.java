@@ -18,11 +18,17 @@ package se.trixon.bivi.db.api;
 import com.healthmarketscience.sqlbuilder.BinaryCondition;
 import com.healthmarketscience.sqlbuilder.DeleteQuery;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
 import com.healthmarketscience.sqlbuilder.UpdateQuery;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
 import se.trixon.almond.Xlog;
 
 /**
@@ -59,6 +65,58 @@ public enum AlbumRootManager {
         try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             statement.execute(deleteQuery.toString());
         }
+    }
+
+    public ArrayList<AlbumRoot> getRoots() {
+        ArrayList<AlbumRoot> roots = new ArrayList<>();
+        Db.AlbumRootsDef albumRoots = Db.AlbumRootsDef.INSTANCE;
+
+        try {
+            Connection conn = DbManager.INSTANCE.getConnection();
+            try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                SelectQuery selectQuery = new SelectQuery()
+                        .addColumns(albumRoots.getId(), albumRoots.getSpecificPath())
+                        .validate();
+                String sql = selectQuery.toString();
+                Xlog.d(getClass(), sql);
+
+                try (ResultSet rs = statement.executeQuery(selectQuery.toString())) {
+                    while (rs.next()) {
+                        int id = rs.getInt(Db.AlbumRootsDef.ID);
+                        String specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
+                        AlbumRoot albumRoot = new AlbumRoot();
+                        albumRoot.setId(id);
+                        albumRoot.setSpecificPath(specificPath);
+
+                        roots.add(albumRoot);
+                    }
+                }
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
+        return roots;
+    }
+
+    public ArrayList<FileObject> getRootsAsFileObjects() {
+        ArrayList<FileObject> fileObjects = new ArrayList<>();
+        
+        getRootsAsFiles().stream().map((file) -> FileUtil.toFileObject(file)).forEach((fileObject) -> {
+            fileObjects.add(fileObject);
+        });
+
+        return fileObjects;
+    }
+    
+    public ArrayList<File> getRootsAsFiles() {
+        ArrayList<File> files = new ArrayList<>();
+        
+        getRoots().stream().map((root) -> new File(root.getSpecificPath())).forEach((file) -> {
+            files.add(file);
+        });
+
+        return files;
     }
 
     public void insert(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {

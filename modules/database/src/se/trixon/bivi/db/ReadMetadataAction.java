@@ -84,7 +84,7 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
 
     @Override
     public void run() {
-        ArrayList<AlbumRoot> roots = getRoots();
+        ArrayList<AlbumRoot> roots = AlbumRootManager.INSTANCE.getRoots();
         if (!roots.isEmpty()) {
             try {
                 mManager.beginTransaction();
@@ -96,38 +96,6 @@ public final class ReadMetadataAction implements ActionListener, Runnable {
                 Exceptions.printStackTrace(ex);
             }
         }
-    }
-
-    private ArrayList<AlbumRoot> getRoots() {
-        ArrayList<AlbumRoot> roots = new ArrayList<>();
-        AlbumRootsDef albumRoots = Db.AlbumRootsDef.INSTANCE;
-
-        try {
-            Connection conn = DbManager.INSTANCE.getConnection();
-            try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-                SelectQuery selectQuery = new SelectQuery()
-                        .addColumns(albumRoots.getId(), albumRoots.getSpecificPath())
-                        .validate();
-                String sql = selectQuery.toString();
-                Xlog.d(getClass(), sql);
-
-                try (ResultSet rs = statement.executeQuery(selectQuery.toString())) {
-                    while (rs.next()) {
-                        int id = rs.getInt(Db.AlbumRootsDef.ID);
-                        String specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
-                        AlbumRoot albumRoot = new AlbumRoot();
-                        albumRoot.setId(id);
-                        albumRoot.setSpecificPath(specificPath);
-
-                        roots.add(albumRoot);
-                    }
-                }
-            }
-        } catch (ClassNotFoundException | SQLException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-
-        return roots;
     }
 
     private void removeNonExistingAlbumRoots(ArrayList<AlbumRoot> roots) {

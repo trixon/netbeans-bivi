@@ -51,7 +51,9 @@ public final class AlbumRootsOptionsPanelController extends OptionsPanelControll
         SwingUtilities.invokeLater(() -> {
             try {
                 getPanel().store();
-                DbMonitor.INSTANCE.dbRootAlbumsChanged();
+                if (getPanel().hasChanged()) {
+                    DbMonitor.INSTANCE.dbRootAlbumsChanged();
+                }
                 mChanged = false;
             } catch (SQLException ex) {
                 Exceptions.printStackTrace(ex);

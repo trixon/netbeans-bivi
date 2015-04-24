@@ -52,6 +52,8 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     private final DbManager mManager = DbManager.INSTANCE;
     private final AlbumRootsOptionsPanelController mController;
     private final AlbumRootManager mAlbumRootManager = AlbumRootManager.INSTANCE;
+    private final DbOptions mOptions = DbOptions.INSTANCE;
+    private boolean mChanged;
 
     AlbumRootsPanel(AlbumRootsOptionsPanelController controller) {
         mController = controller;
@@ -59,13 +61,20 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         init();
     }
 
+    public boolean hasChanged() {
+        return mChanged;
+    }
+
     private void dbDelete(AlbumRoot albumRoot) throws ClassNotFoundException, SQLException {
         mManager.beginTransaction();
+
         if (albumRoot == null) {
             mAlbumRootManager.deleteAll();
         } else {
             mAlbumRootManager.delete(albumRoot.getId());
         }
+
+        mChanged = true;
         mController.changed();
     }
 
@@ -110,6 +119,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         mManager.beginTransaction();
         mAlbumRootManager.insert(albumRoot);
 
+        mChanged = true;
         mController.changed();
         return true;
     }
@@ -162,6 +172,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         mManager.beginTransaction();
         mAlbumRootManager.update(albumRoot);
 
+        mChanged = true;
         mController.changed();
         return true;
     }
@@ -252,6 +263,13 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         removeAllButton = new javax.swing.JButton();
         scrollPane = new javax.swing.JScrollPane();
         list = new javax.swing.JList();
+        footerPanel = new javax.swing.JPanel();
+        updateLabel = new javax.swing.JLabel();
+        updateOnStartCheckBox = new javax.swing.JCheckBox();
+        monitorCheckBox = new javax.swing.JCheckBox();
+
+        setPreferredSize(new java.awt.Dimension(200, 100));
+        setLayout(new java.awt.BorderLayout());
 
         toolBar.setFloatable(false);
         toolBar.setRollover(true);
@@ -300,26 +318,57 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         });
         toolBar.add(removeAllButton);
 
+        add(toolBar, java.awt.BorderLayout.PAGE_START);
+
         scrollPane.setViewportView(list);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(toolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
+        add(scrollPane, java.awt.BorderLayout.CENTER);
+
+        updateLabel.setFont(updateLabel.getFont().deriveFont(updateLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        org.openide.awt.Mnemonics.setLocalizedText(updateLabel, Dict.AUTOMATIC_UPDATING.getString());
+
+        org.openide.awt.Mnemonics.setLocalizedText(updateOnStartCheckBox, org.openide.util.NbBundle.getMessage(AlbumRootsPanel.class, "AlbumRootsPanel.updateOnStartCheckBox.text")); // NOI18N
+        updateOnStartCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateOnStartCheckBoxActionPerformed(evt);
+            }
+        });
+
+        org.openide.awt.Mnemonics.setLocalizedText(monitorCheckBox, org.openide.util.NbBundle.getMessage(AlbumRootsPanel.class, "AlbumRootsPanel.monitorCheckBox.text")); // NOI18N
+        monitorCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                monitorCheckBoxActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout footerPanelLayout = new javax.swing.GroupLayout(footerPanel);
+        footerPanel.setLayout(footerPanelLayout);
+        footerPanelLayout.setHorizontalGroup(
+            footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(footerPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(scrollPane)
-                .addContainerGap())
+                .addGroup(footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(updateLabel)
+                    .addGroup(footerPanelLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addGroup(footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(monitorCheckBox)
+                            .addComponent(updateOnStartCheckBox))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        footerPanelLayout.setVerticalGroup(
+            footerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(footerPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(updateLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scrollPane)
-                .addContainerGap())
+                .addComponent(updateOnStartCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(monitorCheckBox)
+                .addGap(0, 0, 0))
         );
+
+        add(footerPanel, java.awt.BorderLayout.PAGE_END);
     }// </editor-fold>//GEN-END:initComponents
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
@@ -386,11 +435,24 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_removeAllButtonActionPerformed
 
+    private void updateOnStartCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOnStartCheckBoxActionPerformed
+        mController.changed();
+    }//GEN-LAST:event_updateOnStartCheckBoxActionPerformed
+
+    private void monitorCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_monitorCheckBoxActionPerformed
+        mController.changed();
+    }//GEN-LAST:event_monitorCheckBoxActionPerformed
+
     void load() throws SQLException {
+        mChanged = false;
+        monitorCheckBox.setSelected(mOptions.isLibraryMonitor());
+        updateOnStartCheckBox.setSelected(mOptions.isLibraryUpdateOnStart());
         dbSelect();
     }
 
     void store() throws SQLException {
+        mOptions.setLibraryMonitor(monitorCheckBox.isSelected());
+        mOptions.setLibraryUpdateOnStart(updateOnStartCheckBox.isSelected());
         mManager.commitTransaction();
     }
 
@@ -402,10 +464,14 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JButton editButton;
+    private javax.swing.JPanel footerPanel;
     private javax.swing.JList list;
+    private javax.swing.JCheckBox monitorCheckBox;
     private javax.swing.JButton removeAllButton;
     private javax.swing.JButton removeButton;
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JToolBar toolBar;
+    private javax.swing.JLabel updateLabel;
+    private javax.swing.JCheckBox updateOnStartCheckBox;
     // End of variables declaration//GEN-END:variables
 }
