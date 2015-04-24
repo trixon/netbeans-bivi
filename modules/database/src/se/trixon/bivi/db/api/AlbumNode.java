@@ -16,8 +16,11 @@
 package se.trixon.bivi.db.api;
 
 import java.beans.IntrospectionException;
+import java.util.List;
+import javax.swing.Action;
 import org.openide.nodes.BeanNode;
 import org.openide.nodes.Children;
+import org.openide.util.Utilities;
 
 /**
  *
@@ -31,5 +34,15 @@ public class AlbumNode extends BeanNode {
         setShortDescription(bean.getCaption());
 
         setIconBaseWithExtension("se/trixon/bivi/core/res/folder16.png");
+    }
+
+    @Override
+    public Action[] getActions(boolean context) {
+        List<? extends Action> actions = Utilities.actionsForPath("Actions/Nodes/Album");
+        return actions.toArray(new Action[actions.size()]);
+    }
+
+    public Album getAlbum() {
+        return (Album) getBean();
     }
 }

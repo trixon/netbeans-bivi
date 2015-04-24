@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.bivi.albumbrowser;
+package se.trixon.bivi.browser.album;
 
 import java.awt.BorderLayout;
 import org.netbeans.api.settings.ConvertAsProperties;
@@ -27,6 +27,8 @@ import org.openide.nodes.Children;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
+import org.openide.windows.WindowManager;
+import se.trixon.bivi.core.BiviGlobals;
 import se.trixon.bivi.core.BiviTopComponent;
 import se.trixon.bivi.db.api.AlbumRootChildFactory;
 import se.trixon.bivi.db.api.DbMonitor;
@@ -35,7 +37,7 @@ import se.trixon.bivi.db.api.DbMonitor;
  * Top component which displays something.
  */
 @ConvertAsProperties(
-        dtd = "-//se.trixon.bivi.albumbrowser//AlbumBrowser//EN",
+        dtd = "-//se.trixon.bivi.browser.album//AlbumBrowser//EN",
         autostore = false
 )
 @TopComponent.Description(
@@ -44,7 +46,7 @@ import se.trixon.bivi.db.api.DbMonitor;
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "explorer", openAtStartup = true)
-@ActionID(category = "Window", id = "se.trixon.bivi.albumbrowser.AlbumBrowserTopComponent")
+@ActionID(category = "Window", id = "se.trixon.bivi.browser.album.AlbumBrowserTopComponent")
 @ActionReferences({
     @ActionReference(path = "Menu/Browse", position = 0),
     @ActionReference(path = "Shortcuts", name = "D-1")
@@ -55,7 +57,7 @@ import se.trixon.bivi.db.api.DbMonitor;
 )
 public final class AlbumBrowserTopComponent extends BiviTopComponent implements ExplorerManager.Provider, DbMonitor.DbEvent {
 
-    private final ExplorerManager mExplorerManager = new ExplorerManager();
+    private final ExplorerManager mExplorerManager = BiviGlobals.getAlbumExplorerManager();
     private BeanTreeView mBeanTreeView;
 
     public AlbumBrowserTopComponent() {
@@ -65,6 +67,14 @@ public final class AlbumBrowserTopComponent extends BiviTopComponent implements 
         putClientProperty(TopComponent.PROP_MAXIMIZATION_DISABLED, Boolean.TRUE);
 
         init();
+    }
+
+    public static AlbumBrowserTopComponent getInstance() {
+        return (AlbumBrowserTopComponent) WindowManager.getDefault().findTopComponent("AlbumBrowserTopComponent");
+    }
+
+    public Node[] getSelectedNodes() {
+        return mExplorerManager.getSelectedNodes();
     }
 
     @Override
