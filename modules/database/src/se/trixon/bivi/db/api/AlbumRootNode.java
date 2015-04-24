@@ -28,8 +28,7 @@ public class AlbumRootNode extends BeanNode {
         super(bean);
         setDisplayName(bean.getLabel());
         setShortDescription(bean.getSpecificPath());
-        
-        //setIconBaseWithExtension("org/fully/qualified/name/myicon.png");
-    }
 
+        setIconBaseWithExtension("se/trixon/bivi/core/res/folder-image16.png");
+    }
 }
