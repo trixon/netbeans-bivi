@@ -18,6 +18,7 @@ package se.trixon.bivi.db.api;
 import com.healthmarketscience.sqlbuilder.BinaryCondition;
 import com.healthmarketscience.sqlbuilder.DeleteQuery;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.OrderObject;
 import com.healthmarketscience.sqlbuilder.SelectQuery;
 import com.healthmarketscience.sqlbuilder.UpdateQuery;
 import java.io.File;
@@ -75,7 +76,8 @@ public enum AlbumRootManager {
             Connection conn = DbManager.INSTANCE.getConnection();
             try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 SelectQuery selectQuery = new SelectQuery()
-                        .addColumns(albumRoots.getId(), albumRoots.getSpecificPath())
+                        .addAllTableColumns(albumRoots.getTable())
+                        .addOrdering(albumRoots.getLabel(), OrderObject.Dir.ASCENDING)
                         .validate();
                 String sql = selectQuery.toString();
                 Xlog.d(getClass(), sql);
@@ -83,10 +85,19 @@ public enum AlbumRootManager {
                 try (ResultSet rs = statement.executeQuery(selectQuery.toString())) {
                     while (rs.next()) {
                         int id = rs.getInt(Db.AlbumRootsDef.ID);
+                        String label = rs.getString(Db.AlbumRootsDef.LABEL);
+                        String identifier = rs.getString(Db.AlbumRootsDef.IDENTIFIER);
                         String specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
+                        int status = rs.getInt(Db.AlbumRootsDef.STATUS);
+                        int type = rs.getInt(Db.AlbumRootsDef.TYPE);
+
                         AlbumRoot albumRoot = new AlbumRoot();
                         albumRoot.setId(id);
+                        albumRoot.setIdentifier(identifier);
+                        albumRoot.setLabel(label);
                         albumRoot.setSpecificPath(specificPath);
+                        albumRoot.setStatus(status);
+                        albumRoot.setType(type);
 
                         roots.add(albumRoot);
                     }
@@ -101,17 +112,17 @@ public enum AlbumRootManager {
 
     public ArrayList<FileObject> getRootsAsFileObjects() {
         ArrayList<FileObject> fileObjects = new ArrayList<>();
-        
+
         getRootsAsFiles().stream().map((file) -> FileUtil.toFileObject(file)).forEach((fileObject) -> {
             fileObjects.add(fileObject);
         });
 
         return fileObjects;
     }
-    
+
     public ArrayList<File> getRootsAsFiles() {
         ArrayList<File> files = new ArrayList<>();
-        
+
         getRoots().stream().map((root) -> new File(root.getSpecificPath())).forEach((file) -> {
             files.add(file);
         });
