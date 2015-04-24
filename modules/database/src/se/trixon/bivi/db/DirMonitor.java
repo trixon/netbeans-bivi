@@ -27,7 +27,6 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.openide.util.Exceptions;
@@ -37,101 +36,50 @@ import se.trixon.almond.Xlog;
  *
  * @author Patrik Karlsson
  */
-public class AlbumMonitor {
-
-    private static final ArrayList<AlbumMonitor> sAlbumMonitors = new ArrayList<>();
-    public static void stopAllMonitors() {
-        if (!sAlbumMonitors.isEmpty()) {
-            Xlog.d(AlbumMonitor.class, "stopAllMonitors");
-        }
-        sAlbumMonitors.stream().forEach((albumMonitor) -> {
-            albumMonitor.stopMonitor();
-        });
-        sAlbumMonitors.clear();
-    }
+public class DirMonitor {
 
     @SuppressWarnings(value = "unchecked")
     static <T> WatchEvent<T> cast(WatchEvent<?> event) {
         return (WatchEvent<T>) event;
     }
-    
+
     private final Path mDir;
     private boolean mMonitor = false;
+    private volatile Thread mProcessThread;
     private final Map<WatchKey, Path> mWatchKeys;
     private final WatchService mWatchService;
-    private volatile Thread processingThread;
 
-    public AlbumMonitor(Path dir) throws IOException {
+    public DirMonitor(Path dir) throws IOException {
         mWatchService = FileSystems.getDefault().newWatchService();
         mWatchKeys = new HashMap<>();
         mDir = dir;
+
         Xlog.d(getClass(), "Start monitor " + dir);
         registerAll(dir);
         Xlog.d(getClass(), "Start monitor " + dir + "...done!");
 
         mMonitor = true;
-        sAlbumMonitors.add(this);
     }
 
-    public void startMonitor() {
-        processingThread = new Thread(() -> {
+    public Path getDir() {
+        return mDir;
+    }
+
+    public void start() {
+        mProcessThread = new Thread(() -> {
             processEvents();
         });
 
-        processingThread.start();
+        mProcessThread.start();
     }
 
     public void stopMonitor() {
-        Thread thread = processingThread;
+        Thread thread = mProcessThread;
         if (thread != null) {
             Xlog.d(getClass(), "Stop monitor " + mDir);
             mWatchKeys.clear();
-            try {
-                mWatchService.close();
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-
             thread.interrupt();
         }
-    }
-
-    private void register(Path dir) throws IOException {
-        WatchKey watchKey = dir.register(mWatchService,
-                StandardWatchEventKinds.ENTRY_CREATE,
-                StandardWatchEventKinds.ENTRY_DELETE,
-                StandardWatchEventKinds.ENTRY_MODIFY);
-
-        if (mMonitor) {
-            Path prev = mWatchKeys.get(watchKey);
-            if (prev == null) {
-                String message = String.format("register: %s", dir);
-                Xlog.d(getClass(), message);
-            } else {
-                if (!dir.equals(prev)) {
-                    String message = String.format("update: %s -> %s", prev, dir);
-                    Xlog.d(getClass(), message);
-                }
-            }
-        }
-
-        mWatchKeys.put(watchKey, dir);
-    }
-
-    private void registerAll(final Path start) throws IOException {
-        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                register(dir);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-                return FileVisitResult.CONTINUE;
-            }
-
-        });
     }
 
     void processEvents() {
@@ -186,6 +134,44 @@ public class AlbumMonitor {
                 }
             }
         }
+    }
+
+    private void register(Path dir) throws IOException {
+        WatchKey watchKey = dir.register(mWatchService,
+                StandardWatchEventKinds.ENTRY_CREATE,
+                StandardWatchEventKinds.ENTRY_DELETE,
+                StandardWatchEventKinds.ENTRY_MODIFY);
+
+        if (mMonitor) {
+            Path prev = mWatchKeys.get(watchKey);
+            if (prev == null) {
+                String message = String.format("register: %s", dir);
+                Xlog.d(getClass(), message);
+            } else {
+                if (!dir.equals(prev)) {
+                    String message = String.format("update: %s -> %s", prev, dir);
+                    Xlog.d(getClass(), message);
+                }
+            }
+        }
+
+        mWatchKeys.put(watchKey, dir);
+    }
+
+    private void registerAll(final Path start) throws IOException {
+        Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                register(dir);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                return FileVisitResult.CONTINUE;
+            }
+
+        });
     }
 
 }

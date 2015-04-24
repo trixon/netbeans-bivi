@@ -31,7 +31,7 @@ public class OnStopEvent implements Runnable {
     @Override
     public void run() {
         Xlog.d(getClass(), "onStop");
-        AlbumMonitor.stopAllMonitors();
+        DirMonitorManager.INSTANCE.stopAll();
         try {
             DbManager.INSTANCE.closeConnection();
         } catch (SQLException ex) {

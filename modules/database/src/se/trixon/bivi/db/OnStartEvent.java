@@ -16,16 +16,13 @@
 package se.trixon.bivi.db;
 
 import java.io.File;
-import java.io.IOException;
 import se.trixon.bivi.db.api.DbManager;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 import javax.swing.SwingUtilities;
 import org.openide.modules.OnStart;
-import org.openide.util.Exceptions;
 import se.trixon.almond.Xlog;
 import se.trixon.bivi.db.api.AlbumRootManager;
 import se.trixon.bivi.db.api.DbMonitor;
@@ -48,35 +45,23 @@ public class OnStartEvent implements Runnable, DbMonitor.DbEvent {
         mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
             String key = evt.getKey();
             if (key.equalsIgnoreCase(mOptions.KEY_LIBRARY_MONITOR)) {
-                initAlbumMonitors();
+                if (mOptions.isLibraryMonitor()) {
+                    initDirMonitors();
+                } else {
+                    DirMonitorManager.INSTANCE.stopAll();
+                }
             }
         });
     }
 
     @Override
     public void onDbChanged() {
-        initAlbumMonitors();
+        initDirMonitors();
     }
 
     @Override
     public void onDbRootAlbumsChanged() {
-        initAlbumMonitors();
-    }
-
-    private void initAlbumMonitors() {
-        Xlog.d(getClass(), "initAlbumMonitors()");
-        AlbumMonitor.stopAllMonitors();
-        if (mOptions.isLibraryMonitor()) {
-            ArrayList<File> roots = AlbumRootManager.INSTANCE.getRootsAsFiles();
-            for (File root : roots) {
-                try {
-                    Xlog.d(getClass(), root.getPath());
-                    new AlbumMonitor(root.toPath()).startMonitor();
-                } catch (IOException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
-            }
-        }
+        initDirMonitors();
     }
 
     @Override
@@ -85,11 +70,25 @@ public class OnStartEvent implements Runnable, DbMonitor.DbEvent {
             Xlog.d(getClass(), "onStart");
             try {
                 mConn = mManager.getConnection();
-                initAlbumMonitors();
+                initDirMonitors();
             } catch (ClassNotFoundException | SQLException ex) {
                 Xlog.d(getClass(), "Connection failed");
                 Xlog.d(getClass(), ex.getLocalizedMessage());
             }
         });
+    }
+
+    private synchronized void initDirMonitors() {
+        DirMonitorManager.INSTANCE.stopAndRemoveOrphans();
+        if (mOptions.isLibraryMonitor()) {
+            Xlog.d(getClass(), "initDirMonitors()");
+            ArrayList<File> roots = AlbumRootManager.INSTANCE.getRootsAsFiles();
+            for (File root : roots) {
+                try {
+                    DirMonitorManager.INSTANCE.addAndStart(root.toPath());
+                } catch (InstantiationException ex) {
+                }
+            }
+        }
     }
 }
