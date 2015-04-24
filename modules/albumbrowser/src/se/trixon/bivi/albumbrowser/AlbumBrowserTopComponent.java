@@ -84,6 +84,7 @@ public final class AlbumBrowserTopComponent extends BiviTopComponent implements 
 
     private void init() {
         mBeanTreeView = new BeanTreeView();
+        mBeanTreeView.setRootVisible(false);
         add(mBeanTreeView, BorderLayout.CENTER);
         DbMonitor.INSTANCE.add(this);
         populate();

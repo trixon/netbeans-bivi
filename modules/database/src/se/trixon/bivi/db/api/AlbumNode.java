@@ -23,13 +23,13 @@ import org.openide.nodes.Children;
  *
  * @author Patrik Karlsson
  */
-public class AlbumRootNode extends BeanNode {
+public class AlbumNode extends BeanNode {
 
-    public AlbumRootNode(AlbumRoot bean) throws IntrospectionException {
-        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ROOT), true));
-        setDisplayName(bean.getLabel());
-        setShortDescription(bean.getSpecificPath());
+    public AlbumNode(Album bean) throws IntrospectionException {
+        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ALBUM), true));
+        setDisplayName(bean.getRelativePath());
+        setShortDescription(bean.getCaption());
 
-        setIconBaseWithExtension("se/trixon/bivi/core/res/folder-image16.png");
+        setIconBaseWithExtension("se/trixon/bivi/core/res/folder16.png");
     }
 }
