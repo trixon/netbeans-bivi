@@ -30,7 +30,6 @@ import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
 import se.trixon.bivi.core.BiviGlobals;
 import se.trixon.bivi.core.BiviTopComponent;
-import se.trixon.bivi.db.api.AlbumRootChildFactory;
 import se.trixon.bivi.db.api.DbMonitor;
 
 /**

@@ -17,7 +17,7 @@ package se.trixon.bivi.browser.album.actions.album;
 
 import se.trixon.bivi.browser.album.actions.NodeAction;
 import se.trixon.bivi.db.api.Album;
-import se.trixon.bivi.db.api.AlbumNode;
+import se.trixon.bivi.browser.album.AlbumNode;
 
 /**
  *

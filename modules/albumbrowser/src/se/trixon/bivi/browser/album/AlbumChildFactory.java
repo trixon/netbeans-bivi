@@ -13,33 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.bivi.db.api;
+package se.trixon.bivi.browser.album;
 
 import java.beans.IntrospectionException;
 import java.util.List;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
+import se.trixon.bivi.db.api.Album;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class AlbumRootChildFactory extends ChildFactory<AlbumRoot> {
+public class AlbumChildFactory extends ChildFactory<Album> {
+
+    public static final int PARENT_IS_ALBUM = 1;
+    public static final int PARENT_IS_ROOT = 0;
+    private final int mType;
+
+    public AlbumChildFactory(int parent) {
+        mType = parent;
+    }
 
     @Override
-    protected boolean createKeys(List<AlbumRoot> toPopulate) {
-        toPopulate.addAll(AlbumRootManager.INSTANCE.getRoots());
+    protected boolean createKeys(List<Album> toPopulate) {
+        if (mType == PARENT_IS_ROOT) {
+            Album a = new Album();
+            a.setCaption("caption 0");
+            a.setRelativePath("/the/complete/path/");
+            toPopulate.add(a);
+            toPopulate.add(a);
+            toPopulate.add(a);
+        } else {
+            Album a = new Album();
+            a.setCaption("caption 1");
+            a.setRelativePath("/sub/sub/");
+            toPopulate.add(a);
+            toPopulate.add(a);
+            toPopulate.add(a);
+        }
 
         return true;
     }
 
     @Override
-    protected Node createNodeForKey(AlbumRoot key) {
-        AlbumRootNode node = null;
+    protected Node createNodeForKey(Album key) {
+        AlbumNode node = null;
 
         try {
-            node = new AlbumRootNode(key);
+            node = new AlbumNode(key);
         } catch (IntrospectionException ex) {
             Exceptions.printStackTrace(ex);
         }

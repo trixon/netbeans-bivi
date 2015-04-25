@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.bivi.db.api;
+package se.trixon.bivi.browser.album;
 
 import java.beans.IntrospectionException;
 import java.util.List;
@@ -21,6 +21,7 @@ import javax.swing.Action;
 import org.openide.nodes.BeanNode;
 import org.openide.nodes.Children;
 import org.openide.util.Utilities;
+import se.trixon.bivi.db.api.AlbumRoot;
 
 /**
  *

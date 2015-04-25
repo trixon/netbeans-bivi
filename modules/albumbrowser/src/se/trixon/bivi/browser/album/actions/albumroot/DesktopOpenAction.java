@@ -25,7 +25,7 @@ import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import se.trixon.bivi.db.api.AlbumRoot;
-import se.trixon.bivi.db.api.AlbumRootNode;
+import se.trixon.bivi.browser.album.AlbumRootNode;
 
 @ActionID(
         category = "Nodes/AlbumRoot",
