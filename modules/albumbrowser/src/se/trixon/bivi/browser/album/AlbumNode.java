@@ -30,8 +30,8 @@ import se.trixon.bivi.db.api.Album;
 public class AlbumNode extends BeanNode {
 
     public AlbumNode(Album bean) throws IntrospectionException {
-        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ALBUM), true));
-        setDisplayName(bean.getRelativePath());
+        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ALBUM, bean), true));
+        setDisplayName(bean.getName());
         setShortDescription(bean.getCaption());
 
         setIconBaseWithExtension("se/trixon/bivi/core/res/folder16.png");
@@ -45,5 +45,10 @@ public class AlbumNode extends BeanNode {
 
     public Album getAlbum() {
         return (Album) getBean();
+    }
+
+    @Override
+    public Action getPreferredAction() {
+        return null;
     }
 }

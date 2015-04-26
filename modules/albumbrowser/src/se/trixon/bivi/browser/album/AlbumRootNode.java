@@ -30,7 +30,7 @@ import se.trixon.bivi.db.api.AlbumRoot;
 public class AlbumRootNode extends BeanNode {
 
     public AlbumRootNode(AlbumRoot bean) throws IntrospectionException {
-        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ROOT), true));
+        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ROOT, bean), true));
         setDisplayName(bean.getLabel());
         setShortDescription(bean.getSpecificPath());
 
@@ -45,5 +45,10 @@ public class AlbumRootNode extends BeanNode {
 
     public AlbumRoot getAlbumRoot() {
         return (AlbumRoot) getBean();
+    }
+
+    @Override
+    public Action getPreferredAction() {
+        return null;
     }
 }

@@ -43,7 +43,7 @@ public final class DesktopOpenAction extends AlbumNodeAction implements ActionLi
         Album album = albumNode.getAlbum();
         if (Desktop.isDesktopSupported()) {
             try {
-                Desktop.getDesktop().open(new File(album.getRelativePath()));
+                Desktop.getDesktop().open(album.getAbsoluteFile());
             } catch (IOException ex) {
                 Exceptions.printStackTrace(ex);
             }

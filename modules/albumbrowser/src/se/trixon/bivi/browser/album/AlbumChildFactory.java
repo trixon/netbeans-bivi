@@ -16,11 +16,20 @@
 package se.trixon.bivi.browser.album;
 
 import java.beans.IntrospectionException;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.openide.nodes.ChildFactory;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
 import se.trixon.bivi.db.api.Album;
+import se.trixon.bivi.db.api.AlbumManager;
+import se.trixon.bivi.db.api.AlbumRoot;
+import se.trixon.bivi.db.api.AlbumRootManager;
 
 /**
  *
@@ -31,28 +40,53 @@ public class AlbumChildFactory extends ChildFactory<Album> {
     public static final int PARENT_IS_ALBUM = 1;
     public static final int PARENT_IS_ROOT = 0;
     private final int mType;
+    private AlbumRoot mAlbumRoot;
+    private Album mAlbum;
+    private final long albumRootId;
+    private final String mRelativePath;
+    private String mSpecificPath = "";
+    private AlbumRootManager mAlbumRootManager = AlbumRootManager.INSTANCE;
+    private AlbumManager mAlbumManager = AlbumManager.INSTANCE;
+    private File mAbsoluteFile;
 
-    public AlbumChildFactory(int parent) {
+    public AlbumChildFactory(int parent, AlbumRoot albumRoot) {
         mType = parent;
+        mAlbumRoot = albumRoot;
+        albumRootId = mAlbumRoot.getId();
+        mAbsoluteFile = albumRoot.getAbsoluteFile();
+        mRelativePath = String.valueOf(IOUtils.DIR_SEPARATOR);
+
+        try {
+            mSpecificPath = mAlbumRootManager.getAbsoluteFile(albumRootId).getAbsolutePath();
+        } catch (SQLException ex) {
+//            Exceptions.printStackTrace(ex);
+        }
+    }
+
+    public AlbumChildFactory(int parent, Album album) {
+        mType = parent;
+        mAlbum = album;
+        albumRootId = album.getAlbumRootId();
+        mRelativePath = album.getRelativePath();
+        mAbsoluteFile = album.getAbsoluteFile();
+
+        try {
+            mSpecificPath = mAlbumRootManager.getAbsoluteFile(albumRootId).getAbsolutePath();
+        } catch (SQLException ex) {
+//            Exceptions.printStackTrace(ex);
+        }
     }
 
     @Override
     protected boolean createKeys(List<Album> toPopulate) {
+        File dir;
         if (mType == PARENT_IS_ROOT) {
-            Album a = new Album();
-            a.setCaption("caption 0");
-            a.setRelativePath("/the/complete/path/");
-            toPopulate.add(a);
-            toPopulate.add(a);
-            toPopulate.add(a);
+            dir = new File(mAlbumRoot.getSpecificPath() + "/");
         } else {
-            Album a = new Album();
-            a.setCaption("caption 1");
-            a.setRelativePath("/sub/sub/");
-            toPopulate.add(a);
-            toPopulate.add(a);
-            toPopulate.add(a);
+            dir = mAlbum.getAbsoluteFile();
         }
+
+        populateItems(albumRootId, dir, toPopulate);
 
         return true;
     }
@@ -68,5 +102,36 @@ public class AlbumChildFactory extends ChildFactory<Album> {
         }
 
         return node;
+    }
+
+    private void populateItems(long albumRootId, File dir, List<Album> toPopulate) {
+        String[] directories = dir.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File current, String name) {
+                File f = new File(current, name);
+
+                return f.isDirectory() && !f.isHidden();
+            }
+        });
+
+        Arrays.sort(directories);
+
+        for (String directory : directories) {
+            Album album = null;
+
+            String relativePath;
+            relativePath = FilenameUtils.concat(mRelativePath, directory);
+
+            try {
+                if (!mAlbumManager.exists(albumRootId, relativePath)) {
+                    mAlbumManager.insert(albumRootId, relativePath);
+                }
+                album = AlbumManager.INSTANCE.select(albumRootId, relativePath);
+                toPopulate.add(album);
+            } catch (SQLException ex) {
+                //Album not found, and failed to insert new.
+                Exceptions.printStackTrace(ex);
+            }
+        }
     }
 }
