@@ -95,7 +95,7 @@ public class AlbumRootsPanel extends javax.swing.JPanel {
         int rowCount = 0;
 
         Connection conn = DbManager.INSTANCE.getConnection();
-        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet rs = statement.executeQuery(selectQuery.toString())) {
             rs.first();
             rowCount = rs.getInt("ROW_COUNT");

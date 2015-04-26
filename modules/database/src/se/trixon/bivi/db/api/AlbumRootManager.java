@@ -68,16 +68,43 @@ public enum AlbumRootManager {
         }
     }
 
+    public File getAbsoluteFile(long id) throws SQLException {
+        String specificPath = null;
+        SelectQuery selectQuery = new SelectQuery()
+                .addColumns(mAlbumRootsDef.getSpecificPath())
+                .addCondition(BinaryCondition.equalTo(mAlbumRootsDef.getId(), id))
+                .validate();
+        String sql = selectQuery.toString();
+        Xlog.d(getClass(), sql);
+
+        try {
+            Connection conn = mManager.getConnection();
+            try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+                try (ResultSet rs = statement.executeQuery(sql)) {
+                    rs.next();
+                    specificPath = rs.getString(Db.AlbumRootsDef.SPECIFIC_PATH);
+                }
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+
+        if (specificPath == null) {
+            throw new SQLException("AlbumRoot not found");
+        }
+
+        return new File(specificPath);
+    }
+
     public ArrayList<AlbumRoot> getRoots() {
         ArrayList<AlbumRoot> roots = new ArrayList<>();
-        Db.AlbumRootsDef albumRoots = Db.AlbumRootsDef.INSTANCE;
 
         try {
             Connection conn = DbManager.INSTANCE.getConnection();
             try (Statement statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
                 SelectQuery selectQuery = new SelectQuery()
-                        .addAllTableColumns(albumRoots.getTable())
-                        .addOrdering(albumRoots.getLabel(), OrderObject.Dir.ASCENDING)
+                        .addAllTableColumns(mAlbumRootsDef.getTable())
+                        .addOrdering(mAlbumRootsDef.getLabel(), OrderObject.Dir.ASCENDING)
                         .validate();
                 String sql = selectQuery.toString();
                 Xlog.d(getClass(), sql);
