@@ -37,6 +37,10 @@ public enum Db {
         init();
     }
 
+    public String formatString(String string) {
+        return string.replace("'", "''");
+    }
+
     public DbSchema getSchema() {
         return mSchema;
     }
