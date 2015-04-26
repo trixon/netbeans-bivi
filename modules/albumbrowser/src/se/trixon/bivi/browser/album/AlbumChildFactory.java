@@ -18,6 +18,7 @@ package se.trixon.bivi.browser.album;
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,7 @@ import se.trixon.bivi.db.api.Album;
 import se.trixon.bivi.db.api.AlbumManager;
 import se.trixon.bivi.db.api.AlbumRoot;
 import se.trixon.bivi.db.api.AlbumRootManager;
+import se.trixon.bivi.db.api.Db;
 
 /**
  *
@@ -110,17 +112,20 @@ public class AlbumChildFactory extends ChildFactory<Album> {
             public boolean accept(File current, String name) {
                 File f = new File(current, name);
 
-                return f.isDirectory() && !f.isHidden();
+                return f.isDirectory()
+                        && !f.isHidden()
+                        && !Files.isSymbolicLink(f.toPath());
             }
         });
 
         Arrays.sort(directories);
 
         for (String directory : directories) {
-            Album album = null;
+            Album album;
 
             String relativePath;
             relativePath = FilenameUtils.concat(mRelativePath, directory);
+            relativePath = Db.INSTANCE.formatString(relativePath);
 
             try {
                 if (!mAlbumManager.exists(albumRootId, relativePath)) {
