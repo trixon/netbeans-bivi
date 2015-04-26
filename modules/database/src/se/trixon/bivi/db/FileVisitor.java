@@ -17,6 +17,7 @@ package se.trixon.bivi.db;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
@@ -54,6 +55,10 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
         if (Thread.interrupted()) {
             mInterrupted = true;
             return FileVisitResult.TERMINATE;
+        }
+
+        if (Files.isSymbolicLink(dir)) {
+            return FileVisitResult.SKIP_SUBTREE;
         }
 
         String relativePath = StringUtils.removeStart(dir.toString(), mAlbumRoot.getSpecificPath());
