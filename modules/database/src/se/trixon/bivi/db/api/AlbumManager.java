@@ -149,7 +149,7 @@ public enum AlbumManager {
         }
 
         if (album == null) {
-            throw new SQLException("Album not found");
+            throw new SQLException(String.format("Album not found: %d, %s", albumRoot, relativePath));
         }
 
         return album;
