@@ -16,15 +16,18 @@
 package se.trixon.bivi.browser.album;
 
 import java.awt.BorderLayout;
+import javax.swing.tree.TreeSelectionModel;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionReferences;
 import org.openide.explorer.ExplorerManager;
+import org.openide.explorer.ExplorerUtils;
 import org.openide.explorer.view.BeanTreeView;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.windows.TopComponent;
 import org.openide.windows.WindowManager;
@@ -92,8 +95,12 @@ public final class AlbumBrowserTopComponent extends BiviTopComponent implements 
     }
 
     private void init() {
+        associateLookup(ExplorerUtils.createLookup(BiviGlobals.getAlbumExplorerManager(), getActionMap()));
+//        ExplorerUtils.
+//        associateLookup(Lookup.getDefault());
         mBeanTreeView = new BeanTreeView();
         mBeanTreeView.setRootVisible(false);
+        mBeanTreeView.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         add(mBeanTreeView, BorderLayout.CENTER);
         DbMonitor.INSTANCE.add(this);
         populate();

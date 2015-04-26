@@ -21,6 +21,7 @@ import javax.swing.Action;
 import org.openide.nodes.BeanNode;
 import org.openide.nodes.Children;
 import org.openide.util.Utilities;
+import org.openide.util.lookup.Lookups;
 import se.trixon.bivi.db.api.Album;
 
 /**
@@ -30,7 +31,7 @@ import se.trixon.bivi.db.api.Album;
 public class AlbumNode extends BeanNode {
 
     public AlbumNode(Album bean) throws IntrospectionException {
-        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ALBUM, bean), true));
+        super(bean, Children.create(new AlbumChildFactory(AlbumChildFactory.PARENT_IS_ALBUM, bean), true),Lookups.singleton(bean));
         setDisplayName(bean.getName());
         setShortDescription(bean.getCaption());
 
@@ -39,7 +40,7 @@ public class AlbumNode extends BeanNode {
 
     @Override
     public Action[] getActions(boolean context) {
-        List<? extends Action> actions = Utilities.actionsForPath("Actions/Nodes/Album");
+        List<? extends Action> actions = Utilities.actionsForPath("Bivi/NodeMenu/Album");
         return actions.toArray(new Action[actions.size()]);
     }
 

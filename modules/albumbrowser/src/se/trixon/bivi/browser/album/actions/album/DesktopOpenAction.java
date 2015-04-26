@@ -1,5 +1,5 @@
-/*
- * Copyright 2015 pata.
+/* 
+ * Copyright 2015 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ package se.trixon.bivi.browser.album.actions.album;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
@@ -34,8 +35,18 @@ import se.trixon.bivi.browser.album.AlbumNode;
 @ActionRegistration(
         displayName = "#CTL_DesktopOpenAction"
 )
-@Messages("CTL_DesktopOpenAction=Open in File Manager123")
+@ActionReferences({
+    @ActionReference(path = "Menu/Album", position = 10),
+    @ActionReference(path = "Bivi/NodeMenu/Album", position = 10)
+})
+@Messages("CTL_DesktopOpenAction=Open in File Manager")
 public final class DesktopOpenAction extends AlbumNodeAction implements ActionListener {
+
+//    private final AlbumNode mContext;
+
+//    public DesktopOpenAction(AlbumNode context) {
+//        mContext = context;
+//    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
