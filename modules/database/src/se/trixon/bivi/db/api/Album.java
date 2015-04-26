@@ -15,21 +15,29 @@
  */
 package se.trixon.bivi.db.api;
 
+import java.io.File;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class Album {
 
+    private File mAbsoluteFile;
     private long mAlbumRootId;
     private String mCaption;
     private String mCollection;
     private String mDate;
     private long mIcon;
     private long mId;
+    private String mName;
     private String mRelativePath;
 
     public Album() {
+    }
+
+    public File getAbsoluteFile() {
+        return mAbsoluteFile;
     }
 
     public long getAlbumRootId() {
@@ -56,12 +64,16 @@ public class Album {
         return mId;
     }
 
+    public String getName() {
+        return mName;
+    }
+
     public String getRelativePath() {
         return mRelativePath;
     }
 
-    public long getmId() {
-        return mId;
+    public void setAbsoluteFile(File absoluteFile) {
+        mAbsoluteFile = absoluteFile;
     }
 
     public void setAlbumRootId(long albumRootId) {
@@ -86,6 +98,10 @@ public class Album {
 
     public void setId(long id) {
         mId = id;
+    }
+
+    public void setName(String name) {
+        mName = name;
     }
 
     public void setRelativePath(String relativePath) {

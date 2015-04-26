@@ -38,6 +38,11 @@ public class AlbumRoot {
         mSpecificPath = specificPath;
     }
 
+    public File getAbsoluteFile() {
+
+        return new File(mSpecificPath);
+    }
+
     public long getId() {
         return mId;
     }
