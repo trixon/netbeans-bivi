@@ -24,6 +24,7 @@ import org.openide.explorer.ExplorerManager;
 public class BiviGlobals {
 
     private static ExplorerManager sAlbumExplorerManager;
+    private static ExplorerManager sCalendarExplorerManager;
 
     public static ExplorerManager getAlbumExplorerManager() {
         if (sAlbumExplorerManager == null) {
@@ -31,5 +32,13 @@ public class BiviGlobals {
         }
 
         return sAlbumExplorerManager;
+    }
+
+    public static ExplorerManager getCalendarExplorerManager() {
+        if (sCalendarExplorerManager == null) {
+            sCalendarExplorerManager = new ExplorerManager();
+        }
+
+        return sCalendarExplorerManager;
     }
 }

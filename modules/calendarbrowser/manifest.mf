@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+AutoUpdate-Show-In-Client: true
+OpenIDE-Module: se.trixon.bivi.browser.calendar
+OpenIDE-Module-Localizing-Bundle: se/trixon/bivi/browser/calendar/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
+OpenIDE-Module-Specification-Version: 1.0
+
