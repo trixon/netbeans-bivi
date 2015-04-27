@@ -16,9 +16,11 @@
 package se.trixon.bivi.core;
 
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import org.openide.modules.ModuleInstall;
 import org.openide.windows.WindowManager;
 import se.trixon.almond.Xlog;
+import se.trixon.almond.swing.NoTabsTabDisplayerUI;
 import se.trixon.bivi.core.about.AboutInitializer;
 
 public class Installer extends ModuleInstall {
@@ -27,6 +29,7 @@ public class Installer extends ModuleInstall {
     public void restored() {
         AboutInitializer.init();
         SwingUtilities.invokeLater(() -> {
+            UIManager.put("ViewTabDisplayerUI", NoTabsTabDisplayerUI.ID);
             System.setProperty("netbeans.winsys.status_line.path", "se/trixon/bivi/core/windows/statusbar/se-trixon-bivi-core-windows-statusbar-StatusBar.instance");
         });
 

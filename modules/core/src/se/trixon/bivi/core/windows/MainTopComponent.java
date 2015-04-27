@@ -31,7 +31,7 @@ import org.openide.util.NbBundle.Messages;
 )
 @TopComponent.Description(
         preferredID = "MainTopComponent",
-        //iconBase="SET/PATH/TO/ICON/HERE", 
+        iconBase="se/trixon/bivi/core/res/folder-image16.png", 
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false)
@@ -49,6 +49,9 @@ public final class MainTopComponent extends TopComponent {
     public MainTopComponent() {
         initComponents();
         setName(Bundle.CTL_MainTopComponent());
+
+//        putClientProperty(TopComponent.PROP_DRAGGING_DISABLED, Boolean.TRUE);
+        putClientProperty(TopComponent.PROP_UNDOCKING_DISABLED, Boolean.TRUE);
 
         init();
     }
