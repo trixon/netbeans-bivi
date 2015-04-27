@@ -15,8 +15,6 @@
  */
 package se.trixon.bivi.core.windows;
 
-import org.netbeans.api.progress.ProgressHandle;
-import org.netbeans.api.progress.ProgressHandleFactory;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -36,7 +34,7 @@ import org.openide.util.NbBundle.Messages;
         //iconBase="SET/PATH/TO/ICON/HERE", 
         persistenceType = TopComponent.PERSISTENCE_ALWAYS
 )
-@TopComponent.Registration(mode = "editor", openAtStartup = true)
+@TopComponent.Registration(mode = "editor", openAtStartup = false)
 @ActionID(category = "Window", id = "se.trixon.bivi.core.windows.MainTopComponent")
 @ActionReference(path = "Menu/Window" /*, position = 333 */)
 @TopComponent.OpenActionRegistration(
